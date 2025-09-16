@@ -1,0 +1,210 @@
+{
+    "Items": [
+        {
+            "service_id": {
+                "S": "SERVICE#gmv"
+            },
+            "entity": {
+                "S": "AVAIL"
+            },
+            "start_local": {
+                "S": "10:00"
+            },
+            "weekday": {
+                "N": "5"
+            },
+            "tz_offset": {
+                "S": "-05:00"
+            },
+            "sk": {
+                "S": "v0"
+            },
+            "provider_id": {
+                "S": "edina"
+            },
+            "pk": {
+                "S": "AVAIL#edina#SERVICE#gmv#5"
+            },
+            "end_local": {
+                "S": "18:00"
+            }
+        },
+        {
+            "entity": {
+                "S": "PROVIDER_AVAIL"
+            },
+            "active": {
+                "BOOL": true
+            },
+            "weekday": {
+                "N": "3"
+            },
+            "tz_offset": {
+                "S": "-05:00"
+            },
+            "sk": {
+                "S": "v0"
+            },
+            "provider_id": {
+                "S": "joseph-kumka"
+            },
+            "start_time": {
+                "S": "09:00"
+            },
+            "end_time": {
+                "S": "17:00"
+            },
+            "pk": {
+                "S": "PROVIDER_AVAIL#joseph-kumka#3"
+            }
+        },
+        {
+            "entity": {
+                "S": "APPT"
+            },
+            "created_at": {
+                "S": "2025-09-15T21:08:07.503Z"
+            },
+            "start_iso": {
+                "S": "2025-09-22T15:00:00.000Z"
+            },
+            "confirmed_at": {
+                "S": "2025-09-15T21:08:37.721Z"
+            },
+            "status": {
+                "S": "confirmed"
+            },
+            "zoom_host_url": {
+                "S": "https://us06web.zoom.us/s/84289172941?zak=eyJ0eXAiOiJKV1QiLCJzdiI6IjAwMDAwMiIsInptX3NrbSI6InptX28ybSIsImFsZyI6IkhTMjU2In0.eyJpc3MiOiJ3ZWIiLCJjbHQiOjAsIm1udW0iOiI4NDI4OTE3Mjk0MSIsImF1ZCI6ImNsaWVudHNtIiwidWlkIjoiMHpqSGRHSWRRbW02elJjc1d3WmgxQSIsInppZCI6ImQxZmI5Y2VhNTkxMDQxNDQ4OTdkNGM3Y2Q2NzZiYmI5Iiwic2siOiIwIiwic3R5IjoyNywid2NkIjoidXMwNiIsImV4cCI6MTc1Nzk3NzcxNywiaWF0IjoxNzU3OTcwNTE3LCJhaWQiOiJpdTdENlVfclEyT1NyaXVMd2QyWnl3IiwiY2lkIjoiIn0.xUPcwBPhvN7d3B7MXTUnInn2HJnl7aUJ8kMxF1dWas8"
+            },
+            "provider_id": {
+                "S": "vicroria-kumka"
+            },
+            "zoom_meeting_password": {
+                "S": "XBUH5H"
+            },
+            "zoom_meeting_url": {
+                "S": "https://us06web.zoom.us/j/84289172941?pwd=QnrWtnNVLFiLW7fz8b8n8ElaHcdUPH.1"
+            },
+            "service_id": {
+                "S": "SERVICE#gmv"
+            },
+            "patient_email": {
+                "S": "joseph.kumka@gmail.com"
+            },
+            "zoom_meeting_id": {
+                "S": "84289172941"
+            },
+            "end_iso": {
+                "S": "2025-09-22T16:00:00.000Z"
+            },
+            "sk": {
+                "S": "v0"
+            },
+            "pk": {
+                "S": "APPT#71d06c06-7157-496d-b9d9-cf0e7adb8ae9"
+            },
+            "payment_intent_id": {
+                "S": "pi_3S7jd51cyCy4vYhN1RC8escE"
+            }
+        },
+        {
+            "service_id": {
+                "S": "SERVICE#gmv"
+            },
+            "entity": {
+                "S": "AVAIL"
+            },
+            "start_local": {
+                "S": "10:00"
+            },
+            "weekday": {
+                "N": "4"
+            },
+            "tz_offset": {
+                "S": "-05:00"
+            },
+            "sk": {
+                "S": "v0"
+            },
+            "provider_id": {
+                "S": "edina"
+            },
+            "pk": {
+                "S": "AVAIL#edina#SERVICE#gmv#4"
+            },
+            "end_local": {
+                "S": "18:00"
+            }
+        },
+        {
+            "last_name": {
+                "S": "Kumka"
+            },
+            "first_name": {
+                "S": "Vicroria"
+            },
+            "priority": {
+                "N": "2"
+            },
+            "sk": {
+                "S": "v0"
+            },
+            "pk": {
+                "S": "PROVIDER#vicroria-kumka"
+            },
+            "email": {
+                "S": "joseph.kumka@gmail.com"
+            },
+            "phone": {
+                "S": "6122297117"
+            },
+            "availability": {
+                "L": [
+                    {
+                        "M": {
+                            "weekday": {
+                                "N": "1"
+                            },
+                            "end_time": {
+                                "S": "17:00"
+                            },
+                            "start_time": {
+                                "S": "09:00"
+                            },
+                            "active": {
+                                "BOOL": true
+                            }
+                        }
+                    },
+                    {
+                        "M": {
+                            "weekday": {
+                                "N": "3"
+                            },
+                            "end_time": {
+                                "S": "17:00"
+                            },
+                            "start_time": {
+                                "S": "09:00"
+                            },
+                            "active": {
+                                "BOOL": true
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "Count": 5,
+    "ScannedCount": 5,
+    "LastEvaluatedKey": {
+        "pk": {
+            "S": "PROVIDER#vicroria-kumka"
+        },
+        "sk": {
+            "S": "v0"
+        }
+    }
+}

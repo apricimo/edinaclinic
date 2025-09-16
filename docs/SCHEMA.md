@@ -1,0 +1,3 @@
+appointments fields
+service_id start_time status provider_id patient_id
+notes_markdown notes_author notes_updated_at

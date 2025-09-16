@@ -1,0 +1,49 @@
+{
+    "Table": {
+        "AttributeDefinitions": [
+            {
+                "AttributeName": "pk",
+                "AttributeType": "S"
+            },
+            {
+                "AttributeName": "sk",
+                "AttributeType": "S"
+            }
+        ],
+        "TableName": "appointments",
+        "KeySchema": [
+            {
+                "AttributeName": "pk",
+                "KeyType": "HASH"
+            },
+            {
+                "AttributeName": "sk",
+                "KeyType": "RANGE"
+            }
+        ],
+        "TableStatus": "ACTIVE",
+        "CreationDateTime": "2025-09-14T18:13:01.084000-05:00",
+        "ProvisionedThroughput": {
+            "NumberOfDecreasesToday": 0,
+            "ReadCapacityUnits": 0,
+            "WriteCapacityUnits": 0
+        },
+        "TableSizeBytes": 8657,
+        "ItemCount": 33,
+        "TableArn": "arn:aws:dynamodb:us-east-1:079604065431:table/appointments",
+        "TableId": "2ad29cb3-99f8-443c-a039-3013159fa239",
+        "BillingModeSummary": {
+            "BillingMode": "PAY_PER_REQUEST",
+            "LastUpdateToPayPerRequestDateTime": "2025-09-14T18:13:01.084000-05:00"
+        },
+        "TableClassSummary": {
+            "TableClass": "STANDARD"
+        },
+        "DeletionProtectionEnabled": false,
+        "WarmThroughput": {
+            "ReadUnitsPerSecond": 12000,
+            "WriteUnitsPerSecond": 4000,
+            "Status": "ACTIVE"
+        }
+    }
+}
