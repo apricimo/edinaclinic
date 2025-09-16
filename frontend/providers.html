@@ -11,19 +11,35 @@
     .add-provider-btn{background:#28a745;color:#fff;border:0;padding:10px 20px;border-radius:4px;cursor:pointer;font-size:16px}
     .provider-list{display:flex;flex-direction:column;gap:20px}
     .provider-card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
-    .provider-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}
+    .provider-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;gap:20px}
+    .provider-header-main{display:flex;gap:16px;align-items:center}
     .provider-name{font-size:24px;font-weight:700;margin-bottom:5px}
-    .provider-priority{background:#007bff;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px}
-    .provider-info{margin-bottom:20px}
-    .provider-info p{margin:5px 0}
-    .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:20px}
-    .day-slot{text-align:center;padding:10px;border-radius:5px;font-size:12px}
+    .provider-priority{display:inline-block;background:#007bff;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px;margin-top:4px}
+    .provider-info{margin-bottom:12px}
+    .provider-info p{margin:5px 0;color:#495057}
+    .provider-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #dee2e6}
+    .provider-avatar{width:64px;height:64px;border-radius:50%;background:#dee2e6;color:#495057;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;text-transform:uppercase}
+    .provider-services{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .provider-tag{background:#e9ecef;color:#495057;padding:4px 10px;border-radius:12px;font-size:12px}
+    .provider-bio{margin:10px 0;color:#495057;line-height:1.5;font-size:14px}
+    .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:15px 0}
+    .day-slot{padding:10px;border-radius:5px;font-size:12px;display:flex;flex-direction:column;gap:6px;text-align:center}
+    .day-slot div{margin:0 auto}
     .day-unavailable{background:#f8f9fa;border:1px solid #dee2e6;color:#6c757d}
-    .provider-actions{display:flex;gap:10px}
+    .day-available{background:#e8f5e9;border:1px solid #c3e6cb;color:#1e7e34}
+    .slot-note{font-size:11px;color:#495057;margin-top:4px}
+    .provider-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .edit-btn{background:#007bff;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
     .delete-btn{background:#dc3545;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
     .loading{text-align:center;padding:40px;color:#666}
     .debug-info{background:#f8f9fa;border:1px solid #dee2e6;padding:10px;margin:10px 0;border-radius:4px;font-family:monospace;font-size:12px;max-height:300px;overflow-y:auto}
+    .form-error{margin-top:10px;color:#dc3545;font-size:14px;display:none}
+    .availability-editor{display:flex;flex-direction:column;gap:10px}
+    .availability-row{display:grid;grid-template-columns:140px 1fr 1fr 1fr auto;gap:10px;align-items:center}
+    .availability-row select,.availability-row input{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
+    .availability-row button{padding:8px 12px;border:0;border-radius:4px;background:#f8d7da;color:#721c24;cursor:pointer}
+    .availability-empty{padding:10px;border:1px dashed #ced4da;border-radius:4px;color:#6c757d;font-size:13px;text-align:center}
+    .availability-add-btn{padding:6px 12px;background:#17a2b8;color:#fff;border:0;border-radius:4px;cursor:pointer;font-size:13px}
     /* confirm modal */
     .cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:center;justify-content:center}
     .cm-box{background:#fff;border-radius:8px;width:min(480px,90vw);padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
@@ -72,6 +88,11 @@
             <input id="last_name" name="last_name" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
           </div>
         </div>
+        <div style="margin-top:15px">
+          <label for="provider_id"><b>Provider ID</b> <span style="font-weight:400;color:#6c757d;font-size:12px">(optional)</span></label>
+          <input id="provider_id" name="provider_id" placeholder="e.g. dr-smith" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+          <div style="font-size:12px;color:#6c757d;margin-top:4px">Used in booking URLs and calendars. Letters, numbers and dashes only. Cannot be changed after creation.</div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
           <div>
             <label for="email"><b>Email</b></label>
@@ -86,6 +107,26 @@
           <label for="priority"><b>Priority</b></label>
           <input id="priority" name="priority" type="number" min="1" value="1" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
         </div>
+        <div style="margin-top:15px">
+          <label for="services"><b>Services</b></label>
+          <textarea id="services" name="services" rows="2" placeholder="Separate with commas or new lines" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;resize:vertical"></textarea>
+        </div>
+        <div style="margin-top:15px">
+          <label for="bio"><b>Bio</b></label>
+          <textarea id="bio" name="bio" rows="3" placeholder="Short biography shown to patients" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;resize:vertical"></textarea>
+        </div>
+        <div style="margin-top:15px">
+          <label for="photoUrl"><b>Photo URL</b></label>
+          <input id="photoUrl" name="photoUrl" type="url" placeholder="https://example.com/photo.jpg" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+        </div>
+        <div style="margin-top:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <label><b>Weekly Availability</b></label>
+            <button type="button" class="availability-add-btn" onclick="addAvailabilitySlot()">Add slot</button>
+          </div>
+          <div id="availability-editor" class="availability-editor"></div>
+        </div>
+        <div id="form-error" class="form-error"></div>
         <div style="margin-top:20px">
           <button type="button" onclick="closeModal()" style="padding:10px 16px;border:0;border-radius:6px;background:#6c757d;color:#fff;cursor:pointer">Cancel</button>
           <button id="submit-btn" type="submit" style="padding:10px 16px;border:0;border-radius:6px;background:#007bff;color:#fff;cursor:pointer">Save</button>
@@ -97,17 +138,282 @@
   <script>
     const API_BASE = "https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com";
     const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const fullDayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const dayNameLookup = (()=>{
+      const map=new Map();
+      fullDayNames.forEach((name,index)=>{
+        map.set(String(index),index);
+        map.set(name.toLowerCase(),index);
+        map.set(name.slice(0,3).toLowerCase(),index);
+      });
+      return map;
+    })();
     let currentMode = "add";
     let currentProviderId = null;
     let cacheById = new Map();
+    let availabilityState = [];
 
-    function escapeHtml(s){ return String(s||"").replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+    function escapeHtml(value){
+      const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"};
+      return String(value ?? "").replace(/[&<>"']/g,c=>map[c]||c);
+    }
+
+    function formatMultiline(text){
+      return escapeHtml(text).replace(/\n/g,"<br>");
+    }
+
     function debugLog(msg,data){
       const el=document.getElementById("debug-info");
       const t=new Date().toLocaleTimeString();
       el.innerHTML+=`<div>[${t}] ${escapeHtml(msg)} ${data?escapeHtml(JSON.stringify(data)):""}</div>`;
       el.scrollTop=el.scrollHeight;
       console.log(msg,data||"");
+    }
+
+    function showFormError(message){
+      const el=document.getElementById("form-error");
+      if(!el) return;
+      if(message){
+        el.textContent=message;
+        el.style.display="block";
+      }else{
+        el.textContent="";
+        el.style.display="none";
+      }
+    }
+
+    function coerceString(value){
+      if(value===undefined || value===null) return "";
+      return String(value).trim();
+    }
+
+    function normalizeServices(value){
+      if(Array.isArray(value)){
+        return value.map(coerceString).filter(Boolean);
+      }
+      if(typeof value === "string"){
+        return value
+          .split(/[\n,]+/)
+          .map((item)=>item.trim())
+          .filter(Boolean);
+      }
+      return [];
+    }
+
+    function servicesToInput(services){
+      if(!Array.isArray(services) || !services.length) return "";
+      return services.join(", ");
+    }
+
+    function parseDayValue(value){
+      if(value===undefined || value===null) return null;
+      if(typeof value === "number" && Number.isFinite(value)){
+        const day=Math.round(value);
+        if(day>=0 && day<=6) return day;
+      }
+      const str=String(value).trim().toLowerCase();
+      if(!str) return null;
+      if(dayNameLookup.has(str)) return dayNameLookup.get(str);
+      const numeric=Number(str);
+      if(Number.isFinite(numeric) && numeric>=0 && numeric<=6) return numeric;
+      return null;
+    }
+
+    function coerceTime(value){
+      const str=String(value ?? "").trim();
+      if(!str) return "";
+      const hhmm=/^(\d{1,2}):(\d{2})$/;
+      const hhmmMatch=hhmm.exec(str);
+      if(hhmmMatch){
+        let hour=Number(hhmmMatch[1]);
+        let minute=Number(hhmmMatch[2]);
+        if(!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+        hour=Math.min(Math.max(hour,0),23);
+        minute=Math.min(Math.max(minute,0),59);
+        return `${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+      }
+      const ampm=/^(\d{1,2}):(\d{2})\s*(am|pm)$/i.exec(str);
+      if(ampm){
+        let hour=Number(ampm[1]);
+        let minute=Number(ampm[2]);
+        if(!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+        const suffix=ampm[3].toLowerCase();
+        if(suffix==="pm" && hour<12) hour+=12;
+        if(suffix==="am" && hour===12) hour=0;
+        hour=Math.min(Math.max(hour,0),23);
+        minute=Math.min(Math.max(minute,0),59);
+        return `${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+      }
+      const intMatch=/^(\d{1,2})$/.exec(str);
+      if(intMatch){
+        let hour=Number(intMatch[1]);
+        if(!Number.isFinite(hour)) return "";
+        hour=Math.min(Math.max(hour,0),23);
+        return `${String(hour).padStart(2,"0")}:00`;
+      }
+      return "";
+    }
+
+    function normalizeAvailabilityList(raw){
+      const source=Array.isArray(raw)?raw:[];
+      const normalized=[];
+      for(const entry of source){
+        if(!entry || typeof entry !== "object") continue;
+        const day=parseDayValue(entry.day ?? entry.weekday ?? entry.dayOfWeek);
+        const start=coerceTime(entry.start ?? entry.start_time ?? entry.startTime);
+        const end=coerceTime(entry.end ?? entry.end_time ?? entry.endTime);
+        const notes=coerceString(entry.notes ?? entry.note);
+        if(day===null || !start || !end) continue;
+        const slot={ day, start, end };
+        if(notes) slot.notes=notes;
+        normalized.push(slot);
+      }
+      normalized.sort((a,b)=> (a.day - b.day) || a.start.localeCompare(b.start));
+      return normalized;
+    }
+
+    function setAvailabilityState(slots){
+      const normalized=normalizeAvailabilityList(slots);
+      availabilityState=normalized.map(slot=>({ day:slot.day, start:slot.start, end:slot.end, notes:slot.notes || "" }));
+      if(!availabilityState.length){
+        availabilityState.push({ day:1, start:"", end:"", notes:"" });
+      }
+      renderAvailabilityEditor();
+    }
+
+    function addAvailabilitySlot(slot){
+      const defaults={ day:1, start:"", end:"", notes:"" };
+      const incoming=slot || {};
+      const day=parseDayValue(incoming.day);
+      availabilityState.push({
+        day: day===null ? defaults.day : day,
+        start: coerceTime(incoming.start) || defaults.start,
+        end: coerceTime(incoming.end) || defaults.end,
+        notes: coerceString(incoming.notes || "")
+      });
+      renderAvailabilityEditor();
+    }
+
+    function renderAvailabilityEditor(){
+      const container=document.getElementById("availability-editor");
+      if(!container) return;
+      if(!availabilityState.length){
+        container.innerHTML='<div class="availability-empty">No availability defined. Add a slot to begin.</div>';
+        return;
+      }
+      container.innerHTML=availabilityState.map((slot,index)=>`
+        <div class="availability-row" data-index="${index}">
+          <select data-field="day">
+            ${fullDayNames.map((label,idx)=>`<option value="${idx}" ${Number(slot.day)===idx?"selected":""}>${label}</option>`).join("")}
+          </select>
+          <input type="time" data-field="start" value="${escapeHtml(slot.start||"")}"/>
+          <input type="time" data-field="end" value="${escapeHtml(slot.end||"")}"/>
+          <input type="text" data-field="notes" placeholder="Notes (optional)" value="${escapeHtml(slot.notes||"")}"/>
+          <button type="button" data-action="remove">Remove</button>
+        </div>
+      `).join("");
+
+      container.querySelectorAll("select[data-field='day']").forEach(select=>{
+        select.addEventListener("change",event=>{
+          const row=event.target.closest(".availability-row");
+          const index=Number(row?.dataset?.index);
+          if(Number.isFinite(index) && availabilityState[index]){
+            availabilityState[index].day=Number(event.target.value);
+          }
+        });
+      });
+
+      container.querySelectorAll("input[data-field]").forEach(input=>{
+        input.addEventListener("input",event=>{
+          const row=event.target.closest(".availability-row");
+          const index=Number(row?.dataset?.index);
+          if(!Number.isFinite(index) || !availabilityState[index]) return;
+          const field=event.target.dataset.field;
+          if(field==="start" || field==="end"){
+            availabilityState[index][field]=event.target.value;
+          }
+          if(field==="notes"){
+            availabilityState[index][field]=event.target.value;
+          }
+        });
+      });
+
+      container.querySelectorAll("button[data-action='remove']").forEach(btn=>{
+        btn.addEventListener("click",event=>{
+          const row=event.target.closest(".availability-row");
+          const index=Number(row?.dataset?.index);
+          if(!Number.isFinite(index)) return;
+          availabilityState.splice(index,1);
+          if(!availabilityState.length){
+            availabilityState.push({ day:1, start:"", end:"", notes:"" });
+          }
+          renderAvailabilityEditor();
+        });
+      });
+    }
+
+    function availabilityStateToPayload(){
+      return availabilityState
+        .map(slot=>{
+          const day=parseDayValue(slot.day);
+          const start=coerceTime(slot.start);
+          const end=coerceTime(slot.end);
+          if(day===null || !start || !end) return null;
+          const result={ day, start, end };
+          const notes=coerceString(slot.notes);
+          if(notes) result.notes=notes;
+          return result;
+        })
+        .filter(Boolean);
+    }
+
+    function formatTime(value){
+      const match=/^(\d{1,2}):(\d{2})$/.exec(String(value ?? "").trim());
+      if(!match) return String(value ?? "");
+      let hour=Number(match[1]);
+      const minute=match[2];
+      const suffix=hour>=12?"PM":"AM";
+      hour=hour%12;
+      if(hour===0) hour=12;
+      return `${hour}:${minute} ${suffix}`;
+    }
+
+    function buildInitials(provider){
+      const first=coerceString(provider.first_name || provider.firstName || "");
+      const last=coerceString(provider.last_name || provider.lastName || "");
+      const combined=`${first.slice(0,1)}${last.slice(0,1)}`.toUpperCase();
+      return combined || "👤";
+    }
+
+    function buildScheduleHtml(availability){
+      const byDay=new Map();
+      (Array.isArray(availability)?availability:[]).forEach(slot=>{
+        const day=parseDayValue(slot.day);
+        const start=coerceTime(slot.start);
+        const end=coerceTime(slot.end);
+        if(day===null || !start || !end) return;
+        if(!byDay.has(day)) byDay.set(day,[]);
+        byDay.get(day).push({
+          start,
+          end,
+          notes: slot.notes ? coerceString(slot.notes) : ""
+        });
+      });
+      return dayNames.map((label,idx)=>{
+        const slots=byDay.get(idx) || [];
+        if(!slots.length){
+          return `<div class="day-slot day-unavailable"><div><b>${label}</b></div><div>Unavailable</div></div>`;
+        }
+        const slotHtml=slots
+          .sort((a,b)=>a.start.localeCompare(b.start))
+          .map(slot=>{
+            const timeLabel=`${escapeHtml(formatTime(slot.start))} - ${escapeHtml(formatTime(slot.end))}`;
+            const note=slot.notes ? `<div class="slot-note">${escapeHtml(slot.notes)}</div>` : "";
+            return `<div>${timeLabel}${note}</div>`;
+          })
+          .join("");
+        return `<div class="day-slot day-available"><div><b>${label}</b></div><div>${slotHtml}</div></div>`;
+      }).join("");
     }
 
     function confirmModal(message){
@@ -130,154 +436,251 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", loadProviders);
+    document.addEventListener("DOMContentLoaded",()=>{
+      setAvailabilityState([]);
+      loadProviders();
+    });
 
     function normalizeProvider(raw){
       if(!raw) return null;
-      const provider_id = raw.provider_id || raw.id || raw.pk || "";
-      if(!provider_id) return null;
-      const first_name = raw.first_name || raw.firstName || "";
-      const last_name = raw.last_name || raw.lastName || "";
-      const provider_name = raw.name || [first_name,last_name].filter(Boolean).join(" ");
+      const providerId = raw.provider_id || raw.id || raw.pk || "";
+      if(!providerId) return null;
+      const firstName = coerceString(raw.first_name || raw.firstName);
+      const lastName = coerceString(raw.last_name || raw.lastName);
+      const providedName = coerceString(raw.name);
+      const providerName = providedName || [firstName,lastName].filter(Boolean).join(" ");
       return {
-        provider_id,
-        id: provider_id,
-        first_name,
-        last_name,
-        provider_name,
-        email: raw.email || "",
-        phone: raw.phone || "",
+        provider_id: providerId,
+        id: providerId,
+        first_name: firstName,
+        last_name: lastName,
+        provider_name: providerName,
+        email: coerceString(raw.email),
+        phone: coerceString(raw.phone),
         priority: typeof raw.priority === "number" ? raw.priority : Number(raw.priority) || 1,
-        services: Array.isArray(raw.services) ? raw.services : [],
-        availability: Array.isArray(raw.availability) ? raw.availability : (Array.isArray(raw.schedule) ? raw.schedule : []),
-        bio: raw.bio || "",
-        photoUrl: raw.photoUrl || raw.photo_url || ""
+        services: normalizeServices(raw.services || raw.specialties || raw.service_names || []),
+        availability: normalizeAvailabilityList(raw.availability || raw.schedule || raw.slots || []),
+        bio: coerceString(raw.bio || raw.biography || ""),
+        photoUrl: coerceString(raw.photoUrl || raw.photo_url || raw.photo || "")
       };
     }
 
     async function loadProviders(){
       try{
-        const r=await fetch(`${API_BASE}/providers`);
-        const payload=await r.json();
+        const response=await fetch(`${API_BASE}/providers`);
+        let payload={};
+        try{ payload=await response.json(); }catch(err){ payload={}; }
         const providers=Array.isArray(payload)?payload:(Array.isArray(payload?.providers)?payload.providers:[]);
         const normalized=providers.map(normalizeProvider).filter(Boolean);
+        normalized.sort((a,b)=>{
+          const ap=typeof a.priority === "number" ? a.priority : Number(a.priority) || Number.MAX_SAFE_INTEGER;
+          const bp=typeof b.priority === "number" ? b.priority : Number(b.priority) || Number.MAX_SAFE_INTEGER;
+          if(ap === bp){
+            return (a.provider_name || "").localeCompare(b.provider_name || "");
+          }
+          return ap - bp;
+        });
 
-        debugLog("GET /providers", {status:r.status,count:normalized.length});
-        if(!r.ok){ document.getElementById("provider-list").innerHTML='<div class="loading">Error loading providers</div>'; return; }
+        debugLog("GET /providers", {status:response.status,count:normalized.length});
+        if(!response.ok){
+          document.getElementById("provider-list").innerHTML='<div class="loading">Error loading providers</div>';
+          return;
+        }
         cacheById.clear();
         normalized.forEach(p=>cacheById.set(p.provider_id,p));
         renderProviders(normalized);
-      }catch(e){
-        debugLog("loadProviders error", e);
+      }catch(error){
+        debugLog("loadProviders error", error);
         document.getElementById("provider-list").innerHTML='<div class="loading">Failed to load</div>';
       }
     }
 
     function renderProviders(list){
       const container=document.getElementById("provider-list");
-      if(!list?.length){ container.innerHTML='<div class="loading">No providers found</div>'; return; }
+      if(!list?.length){
+        container.innerHTML='<div class="loading">No providers found</div>';
+        return;
+      }
       container.innerHTML=list.map(p=>{
-        const name = p.provider_name || [p.first_name,p.last_name].filter(Boolean).join(" ");
+        const fallbackName=[p.first_name,p.last_name].filter(Boolean).join(" ") || "Provider";
+        const rawName=p.provider_name || fallbackName;
+        const safeName=escapeHtml(rawName || "Provider");
+        const services=Array.isArray(p.services)?p.services:[];
+        const servicesHtml=services.length?`<div class="provider-services">${services.map(s=>`<span class="provider-tag">${escapeHtml(s)}</span>`).join("")}</div>`:"";
+        const bioHtml=p.bio?`<div class="provider-bio">${formatMultiline(p.bio)}</div>`:"";
+        const photoSection=p.photoUrl?`<img src="${escapeHtml(p.photoUrl)}" alt="${safeName}" class="provider-photo" loading="lazy"/>`:`<div class="provider-avatar">${escapeHtml(buildInitials(p))}</div>`;
+        const scheduleHtml=buildScheduleHtml(p.availability || []);
         return `
         <div class="provider-card">
           <div class="provider-header">
-            <div>
-              <div class="provider-name">${escapeHtml(name||"Provider")}</div>
-              <div class="provider-priority">Priority ${Number(p.priority||1)}</div>
+            <div class="provider-header-main">
+              ${photoSection}
+              <div>
+                <div class="provider-name">${safeName}</div>
+                <div class="provider-priority">Priority ${Number(p.priority||1)}</div>
+              </div>
+            </div>
+            <div class="provider-actions">
+              <button class="edit-btn" onclick="editProvider('${encodeURIComponent(p.provider_id)}')">Edit</button>
+              <button class="delete-btn" onclick="deleteProvider('${encodeURIComponent(p.provider_id)}','${encodeURIComponent(rawName)}')">Delete</button>
             </div>
           </div>
           <div class="provider-info">
+            <p>🆔 ${escapeHtml(p.provider_id)}</p>
             <p>📧 ${escapeHtml(p.email||"undefined")}</p>
             <p>📞 ${escapeHtml(p.phone||"undefined")}</p>
           </div>
+          ${servicesHtml}
+          ${bioHtml}
           <div class="availability-schedule">
-            ${dayNames.map(d=>`<div class="day-slot day-unavailable"><div><b>${d}</b></div><div>Unavailable</div></div>`).join("")}
-          </div>
-          <div class="provider-actions">
-            <button class="edit-btn" onclick="editProvider('${encodeURIComponent(p.provider_id)}')">Edit</button>
-            <button class="delete-btn" onclick="deleteProvider('${encodeURIComponent(p.provider_id)}','${escapeHtml(name)}')">Delete</button>
+            ${scheduleHtml}
           </div>
         </div>`;
       }).join("");
     }
 
     function openAddModal(){
-      currentMode="add"; currentProviderId=null;
+      currentMode="add";
+      currentProviderId=null;
       document.getElementById("modal-title").textContent="Add Provider";
-      document.getElementById("submit-btn").textContent="Add Provider";
+      const submitBtn=document.getElementById("submit-btn");
+      submitBtn.textContent="Add Provider";
+      submitBtn.disabled=false;
       document.getElementById("first_name").value="";
       document.getElementById("last_name").value="";
       document.getElementById("email").value="";
       document.getElementById("phone").value="";
       document.getElementById("priority").value="1";
+      document.getElementById("services").value="";
+      document.getElementById("bio").value="";
+      document.getElementById("photoUrl").value="";
+      const providerIdInput=document.getElementById("provider_id");
+      providerIdInput.value="";
+      providerIdInput.disabled=false;
+      showFormError(null);
+      setAvailabilityState([]);
       document.getElementById("provider-modal").style.display="flex";
     }
 
-    function closeModal(){ document.getElementById("provider-modal").style.display="none"; }
+    function closeModal(){
+      document.getElementById("provider-modal").style.display="none";
+      showFormError(null);
+    }
 
     async function editProvider(providerIdEnc){
-      const id = decodeURIComponent(providerIdEnc);
-      currentMode="edit"; currentProviderId=id;
+      const id=decodeURIComponent(providerIdEnc);
+      currentMode="edit";
+      currentProviderId=id;
       document.getElementById("modal-title").textContent="Edit Provider";
-      document.getElementById("submit-btn").textContent="Update Provider";
+      const submitBtn=document.getElementById("submit-btn");
+      submitBtn.textContent="Update Provider";
+      submitBtn.disabled=false;
 
       try{
-        // try cache first
-        let p = cacheById.get(id);
-        if(!p){
-          const r = await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`);
-          const raw = r.ok ? await r.json() : null;
-          p = normalizeProvider(raw);
-          debugLog("GET /providers/{id}", {status:r.status, id});
-          if(p){ cacheById.set(p.provider_id,p); }
+        let provider=cacheById.get(id);
+        if(!provider){
+          const response=await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`);
+          const raw=response.ok?await response.json():null;
+          provider=normalizeProvider(raw);
+          debugLog("GET /providers/{id}", {status:response.status,id});
+          if(provider){ cacheById.set(provider.provider_id,provider); }
         }
-        if(!p){ debugLog("Edit not found", {id}); return; }
-        document.getElementById("first_name").value=p.first_name||p.firstName||"";
-        document.getElementById("last_name").value=p.last_name||p.lastName||"";
-        document.getElementById("email").value=p.email||"";
-        document.getElementById("phone").value=p.phone||"";
-        document.getElementById("priority").value=Number(p.priority||1);
+        if(!provider){
+          debugLog("Edit not found", {id});
+          return;
+        }
+        document.getElementById("first_name").value=provider.first_name||"";
+        document.getElementById("last_name").value=provider.last_name||"";
+        document.getElementById("email").value=provider.email||"";
+        document.getElementById("phone").value=provider.phone||"";
+        document.getElementById("priority").value=Number(provider.priority||1);
+        document.getElementById("services").value=servicesToInput(provider.services||[]);
+        document.getElementById("bio").value=provider.bio||"";
+        document.getElementById("photoUrl").value=provider.photoUrl||"";
+        const providerIdInput=document.getElementById("provider_id");
+        providerIdInput.value=provider.provider_id||"";
+        providerIdInput.disabled=true;
+        showFormError(null);
+        setAvailabilityState(provider.availability||[]);
         document.getElementById("provider-modal").style.display="flex";
-      }catch(e){
-        debugLog("editProvider error", e);
+      }catch(error){
+        debugLog("editProvider error", error);
       }
     }
 
-    async function deleteProvider(providerIdEnc, name){
-      const id = decodeURIComponent(providerIdEnc);
-      const ok = await confirmModal(`Delete ${name}? This cannot be undone.`);
+    async function deleteProvider(providerIdEnc,encodedName){
+      const id=decodeURIComponent(providerIdEnc);
+      let name;
+      try{
+        name=decodeURIComponent(encodedName || "");
+      }catch(err){
+        name=encodedName || "";
+      }
+      const ok=await confirmModal(`Delete ${name}? This cannot be undone.`);
       if(!ok) return;
-      const r = await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`, { method:"DELETE" });
-      let body={}; try{ body = await r.json(); }catch(e){}
-      debugLog("DELETE /providers/{id}", {status:r.status, body});
-      if(!r.ok){ return; }
-      await loadProviders();
+      try{
+        const response=await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`,{ method:"DELETE" });
+        let body={};
+        try{ body=await response.json(); }catch(err){ body={}; }
+        debugLog("DELETE /providers/{id}", {status:response.status,body});
+        if(!response.ok){ return; }
+        await loadProviders();
+      }catch(error){
+        debugLog("deleteProvider error", error);
+      }
     }
 
-    async function handleSubmit(e){
-      e.preventDefault();
-      const payload = {
-        first_name: document.getElementById("first_name").value,
-        last_name: document.getElementById("last_name").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        priority: Number(document.getElementById("priority").value),
-        availability: []
+    async function handleSubmit(event){
+      event.preventDefault();
+      showFormError(null);
+      const payload={
+        first_name: coerceString(document.getElementById("first_name").value),
+        last_name: coerceString(document.getElementById("last_name").value),
+        email: coerceString(document.getElementById("email").value),
+        phone: coerceString(document.getElementById("phone").value),
+        priority: Number(document.getElementById("priority").value) || 1,
+        services: normalizeServices(document.getElementById("services").value),
+        bio: coerceString(document.getElementById("bio").value),
+        photoUrl: coerceString(document.getElementById("photoUrl").value),
+        availability: availabilityStateToPayload()
       };
 
-      let url = `${API_BASE}/providers`;
-      let method = "POST";
-      if(currentMode === "edit" && currentProviderId){
-        url = `${API_BASE}/providers/${encodeURIComponent(currentProviderId)}`;
-        method = "PUT";
+      if(currentMode === "add"){
+        const requestedId=coerceString(document.getElementById("provider_id").value);
+        if(requestedId){
+          payload.provider_id=requestedId;
+        }
       }
 
-      const r = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
-      const body = await r.json().catch(()=>({}));
-      debugLog(`${method} ${url}`, {status:r.status, body});
-      if(r.ok){
+      let url=`${API_BASE}/providers`;
+      let method="POST";
+      if(currentMode === "edit" && currentProviderId){
+        url=`${API_BASE}/providers/${encodeURIComponent(currentProviderId)}`;
+        method="PUT";
+      }
+
+      const submitBtn=document.getElementById("submit-btn");
+      const originalLabel=submitBtn.textContent;
+      submitBtn.disabled=true;
+      submitBtn.textContent=method === "POST" ? "Saving..." : "Updating...";
+
+      try{
+        const response=await fetch(url,{ method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+        let body={};
+        try{ body=await response.json(); }catch(err){ body={}; }
+        debugLog(`${method} ${url}`, {status:response.status,body});
+        if(!response.ok){
+          showFormError(body?.error || "Unable to save provider.");
+          return;
+        }
         closeModal();
         await loadProviders();
+      }catch(error){
+        debugLog(`${method} ${url} failed`, error);
+        showFormError("Network error saving provider.");
+      }finally{
+        submitBtn.disabled=false;
+        submitBtn.textContent=originalLabel;
       }
     }
   </script>
