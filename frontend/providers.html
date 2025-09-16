@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Provider Management - Edina Clinic</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;padding:20px;background:#f5f5f5}
+    .header{text-align:center;margin-bottom:30px}
+    .provider-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:15px;background:#fff;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+    .add-provider-btn{background:#28a745;color:#fff;border:0;padding:10px 20px;border-radius:4px;cursor:pointer;font-size:16px}
+    .provider-list{display:flex;flex-direction:column;gap:20px}
+    .provider-card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+    .provider-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}
+    .provider-name{font-size:24px;font-weight:700;margin-bottom:5px}
+    .provider-priority{background:#007bff;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px}
+    .provider-info{margin-bottom:20px}
+    .provider-info p{margin:5px 0}
+    .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:20px}
+    .day-slot{text-align:center;padding:10px;border-radius:5px;font-size:12px}
+    .day-unavailable{background:#f8f9fa;border:1px solid #dee2e6;color:#6c757d}
+    .provider-actions{display:flex;gap:10px}
+    .edit-btn{background:#007bff;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
+    .delete-btn{background:#dc3545;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
+    .loading{text-align:center;padding:40px;color:#666}
+    .debug-info{background:#f8f9fa;border:1px solid #dee2e6;padding:10px;margin:10px 0;border-radius:4px;font-family:monospace;font-size:12px;max-height:300px;overflow-y:auto}
+    /* confirm modal */
+    .cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:center;justify-content:center}
+    .cm-box{background:#fff;border-radius:8px;width:min(480px,90vw);padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+    .cm-title{font-size:18px;font-weight:700;margin-bottom:8px}
+    .cm-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+    .cm-btn{padding:10px 16px;border-radius:6px;cursor:pointer}
+    .cm-cancel{border:1px solid #ddd;background:#f7f7f7}
+    .cm-ok{border:0;background:#dc3545;color:#fff}
+    @media (max-width:768px){
+      .availability-schedule{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <div class="header"><h1>Provider Management</h1></div>
+
+  <div class="provider-controls">
+    <h2>Healthcare Providers</h2>
+    <button class="add-provider-btn" onclick="openAddModal()">Add Provider</button>
+  </div>
+
+  <div id="provider-list" class="provider-list">
+    <div class="loading">Loading providers...</div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <h3>Debug Information</h3>
+    <div id="debug-info" class="debug-info">Debug info appears here</div>
+  </div>
+
+  <!-- modal -->
+  <div id="provider-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:#fff;margin:5% auto;padding:20px;border-radius:8px;width:90%;max-width:600px;max-height:80vh;overflow:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h2 id="modal-title">Add Provider</h2>
+        <button onclick="closeModal()" style="font-size:20px;background:none;border:0;cursor:pointer">✕</button>
+      </div>
+      <form id="provider-form" onsubmit="handleSubmit(event)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+          <div>
+            <label for="first_name"><b>First Name</b></label>
+            <input id="first_name" name="first_name" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+          </div>
+          <div>
+            <label for="last_name"><b>Last Name</b></label>
+            <input id="last_name" name="last_name" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
+          <div>
+            <label for="email"><b>Email</b></label>
+            <input id="email" name="email" type="email" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+          </div>
+          <div>
+            <label for="phone"><b>Phone</b></label>
+            <input id="phone" name="phone" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+          </div>
+        </div>
+        <div style="margin-top:15px">
+          <label for="priority"><b>Priority</b></label>
+          <input id="priority" name="priority" type="number" min="1" value="1" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+        </div>
+        <div style="margin-top:20px">
+          <button type="button" onclick="closeModal()" style="padding:10px 16px;border:0;border-radius:6px;background:#6c757d;color:#fff;cursor:pointer">Cancel</button>
+          <button id="submit-btn" type="submit" style="padding:10px 16px;border:0;border-radius:6px;background:#007bff;color:#fff;cursor:pointer">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com";
+    const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    let currentMode = "add";
+    let currentProviderId = null;
+    let cacheById = new Map();
+
+    function escapeHtml(s){ return String(s||"").replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+    function debugLog(msg,data){
+      const el=document.getElementById("debug-info");
+      const t=new Date().toLocaleTimeString();
+      el.innerHTML+=`<div>[${t}] ${escapeHtml(msg)} ${data?escapeHtml(JSON.stringify(data)):""}</div>`;
+      el.scrollTop=el.scrollHeight;
+      console.log(msg,data||"");
+    }
+
+    function confirmModal(message){
+      return new Promise(res=>{
+        const ov=document.createElement("div");
+        ov.className="cm-overlay";
+        const box=document.createElement("div");
+        box.className="cm-box";
+        box.innerHTML=`
+          <div class="cm-title">Confirm delete</div>
+          <div>${escapeHtml(message)}</div>
+          <div class="cm-actions">
+            <button class="cm-btn cm-cancel" id="cm-cancel">Cancel</button>
+            <button class="cm-btn cm-ok" id="cm-ok">Delete</button>
+          </div>`;
+        ov.appendChild(box); document.body.appendChild(ov);
+        const done=v=>{ov.remove();res(v);};
+        box.querySelector("#cm-cancel").onclick=()=>done(false);
+        box.querySelector("#cm-ok").onclick=()=>done(true);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", loadProviders);
+
+    function normalizeProvider(raw){
+      if(!raw) return null;
+      const provider_id = raw.provider_id || raw.id || raw.pk || "";
+      if(!provider_id) return null;
+      const first_name = raw.first_name || raw.firstName || "";
+      const last_name = raw.last_name || raw.lastName || "";
+      const provider_name = raw.name || [first_name,last_name].filter(Boolean).join(" ");
+      return {
+        provider_id,
+        id: provider_id,
+        first_name,
+        last_name,
+        provider_name,
+        email: raw.email || "",
+        phone: raw.phone || "",
+        priority: typeof raw.priority === "number" ? raw.priority : Number(raw.priority) || 1,
+        services: Array.isArray(raw.services) ? raw.services : [],
+        availability: Array.isArray(raw.availability) ? raw.availability : (Array.isArray(raw.schedule) ? raw.schedule : []),
+        bio: raw.bio || "",
+        photoUrl: raw.photoUrl || raw.photo_url || ""
+      };
+    }
+
+    async function loadProviders(){
+      try{
+        const r=await fetch(`${API_BASE}/providers`);
+        const payload=await r.json();
+        const providers=Array.isArray(payload)?payload:(Array.isArray(payload?.providers)?payload.providers:[]);
+        const normalized=providers.map(normalizeProvider).filter(Boolean);
+
+        debugLog("GET /providers", {status:r.status,count:normalized.length});
+        if(!r.ok){ document.getElementById("provider-list").innerHTML='<div class="loading">Error loading providers</div>'; return; }
+        cacheById.clear();
+        normalized.forEach(p=>cacheById.set(p.provider_id,p));
+        renderProviders(normalized);
+      }catch(e){
+        debugLog("loadProviders error", e);
+        document.getElementById("provider-list").innerHTML='<div class="loading">Failed to load</div>';
+      }
+    }
+
+    function renderProviders(list){
+      const container=document.getElementById("provider-list");
+      if(!list?.length){ container.innerHTML='<div class="loading">No providers found</div>'; return; }
+      container.innerHTML=list.map(p=>{
+        const name = p.provider_name || [p.first_name,p.last_name].filter(Boolean).join(" ");
+        return `
+        <div class="provider-card">
+          <div class="provider-header">
+            <div>
+              <div class="provider-name">${escapeHtml(name||"Provider")}</div>
+              <div class="provider-priority">Priority ${Number(p.priority||1)}</div>
+            </div>
+          </div>
+          <div class="provider-info">
+            <p>📧 ${escapeHtml(p.email||"undefined")}</p>
+            <p>📞 ${escapeHtml(p.phone||"undefined")}</p>
+          </div>
+          <div class="availability-schedule">
+            ${dayNames.map(d=>`<div class="day-slot day-unavailable"><div><b>${d}</b></div><div>Unavailable</div></div>`).join("")}
+          </div>
+          <div class="provider-actions">
+            <button class="edit-btn" onclick="editProvider('${encodeURIComponent(p.provider_id)}')">Edit</button>
+            <button class="delete-btn" onclick="deleteProvider('${encodeURIComponent(p.provider_id)}','${escapeHtml(name)}')">Delete</button>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function openAddModal(){
+      currentMode="add"; currentProviderId=null;
+      document.getElementById("modal-title").textContent="Add Provider";
+      document.getElementById("submit-btn").textContent="Add Provider";
+      document.getElementById("first_name").value="";
+      document.getElementById("last_name").value="";
+      document.getElementById("email").value="";
+      document.getElementById("phone").value="";
+      document.getElementById("priority").value="1";
+      document.getElementById("provider-modal").style.display="flex";
+    }
+
+    function closeModal(){ document.getElementById("provider-modal").style.display="none"; }
+
+    async function editProvider(providerIdEnc){
+      const id = decodeURIComponent(providerIdEnc);
+      currentMode="edit"; currentProviderId=id;
+      document.getElementById("modal-title").textContent="Edit Provider";
+      document.getElementById("submit-btn").textContent="Update Provider";
+
+      try{
+        // try cache first
+        let p = cacheById.get(id);
+        if(!p){
+          const r = await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`);
+          const raw = r.ok ? await r.json() : null;
+          p = normalizeProvider(raw);
+          debugLog("GET /providers/{id}", {status:r.status, id});
+          if(p){ cacheById.set(p.provider_id,p); }
+        }
+        if(!p){ debugLog("Edit not found", {id}); return; }
+        document.getElementById("first_name").value=p.first_name||p.firstName||"";
+        document.getElementById("last_name").value=p.last_name||p.lastName||"";
+        document.getElementById("email").value=p.email||"";
+        document.getElementById("phone").value=p.phone||"";
+        document.getElementById("priority").value=Number(p.priority||1);
+        document.getElementById("provider-modal").style.display="flex";
+      }catch(e){
+        debugLog("editProvider error", e);
+      }
+    }
+
+    async function deleteProvider(providerIdEnc, name){
+      const id = decodeURIComponent(providerIdEnc);
+      const ok = await confirmModal(`Delete ${name}? This cannot be undone.`);
+      if(!ok) return;
+      const r = await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`, { method:"DELETE" });
+      let body={}; try{ body = await r.json(); }catch(e){}
+      debugLog("DELETE /providers/{id}", {status:r.status, body});
+      if(!r.ok){ return; }
+      await loadProviders();
+    }
+
+    async function handleSubmit(e){
+      e.preventDefault();
+      const payload = {
+        first_name: document.getElementById("first_name").value,
+        last_name: document.getElementById("last_name").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        priority: Number(document.getElementById("priority").value),
+        availability: []
+      };
+
+      let url = `${API_BASE}/providers`;
+      let method = "POST";
+      if(currentMode === "edit" && currentProviderId){
+        url = `${API_BASE}/providers/${encodeURIComponent(currentProviderId)}`;
+        method = "PUT";
+      }
+
+      const r = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+      const body = await r.json().catch(()=>({}));
+      debugLog(`${method} ${url}`, {status:r.status, body});
+      if(r.ok){
+        closeModal();
+        await loadProviders();
+      }
+    }
+  </script>
+</body>
+</html>
