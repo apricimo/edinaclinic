@@ -222,7 +222,7 @@
     function coerceTime(value){
       const str=String(value ?? "").trim();
       if(!str) return "";
-      const hhmm=/^(\d{1,2}):(\d{2})$/;
+      const hhmm=/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
       const hhmmMatch=hhmm.exec(str);
       if(hhmmMatch){
         let hour=Number(hhmmMatch[1]);
@@ -382,7 +382,17 @@
       const first=coerceString(provider.first_name || provider.firstName || "");
       const last=coerceString(provider.last_name || provider.lastName || "");
       const combined=`${first.slice(0,1)}${last.slice(0,1)}`.toUpperCase();
-      return combined || "👤";
+      if(combined){
+        return combined;
+      }
+      const fallback=coerceString(provider.provider_name || provider.name || "");
+      if(fallback){
+        const letters=fallback.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
+        if(letters){
+          return letters;
+        }
+      }
+      return "👤";
     }
 
     function buildScheduleHtml(availability){
@@ -447,7 +457,7 @@
       if(!providerId) return null;
       const firstName = coerceString(raw.first_name || raw.firstName);
       const lastName = coerceString(raw.last_name || raw.lastName);
-      const providedName = coerceString(raw.name);
+      const providedName = coerceString(raw.name || raw.provider_name || raw.providerName);
       const providerName = providedName || [firstName,lastName].filter(Boolean).join(" ");
       return {
         provider_id: providerId,
@@ -502,9 +512,10 @@
         return;
       }
       container.innerHTML=list.map(p=>{
-        const fallbackName=[p.first_name,p.last_name].filter(Boolean).join(" ") || "Provider";
-        const rawName=p.provider_name || fallbackName;
-        const safeName=escapeHtml(rawName || "Provider");
+        const fallbackName=[p.first_name,p.last_name].filter(Boolean).join(" ");
+        const displayName=fallbackName || p.provider_name || "Provider";
+        const rawName=displayName;
+        const safeName=escapeHtml(displayName);
         const services=Array.isArray(p.services)?p.services:[];
         const servicesHtml=services.length?`<div class="provider-services">${services.map(s=>`<span class="provider-tag">${escapeHtml(s)}</span>`).join("")}</div>`:"";
         const bioHtml=p.bio?`<div class="provider-bio">${formatMultiline(p.bio)}</div>`:"";
@@ -644,6 +655,12 @@
         photoUrl: coerceString(document.getElementById("photoUrl").value),
         availability: availabilityStateToPayload()
       };
+
+      const derivedName=[payload.first_name,payload.last_name].filter(Boolean).join(" ");
+      if(derivedName){
+        payload.name=derivedName;
+        payload.provider_name=derivedName;
+      }
 
       if(currentMode === "add"){
         const requestedId=coerceString(document.getElementById("provider_id").value);
