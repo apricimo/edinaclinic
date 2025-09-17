@@ -11,19 +11,44 @@
     .add-provider-btn{background:#28a745;color:#fff;border:0;padding:10px 20px;border-radius:4px;cursor:pointer;font-size:16px}
     .provider-list{display:flex;flex-direction:column;gap:20px}
     .provider-card{background:#fff;border-radius:8px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
-    .provider-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px}
+    .provider-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:15px;gap:20px}
+    .provider-header-main{display:flex;gap:16px;align-items:center}
     .provider-name{font-size:24px;font-weight:700;margin-bottom:5px}
-    .provider-priority{background:#007bff;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px}
-    .provider-info{margin-bottom:20px}
-    .provider-info p{margin:5px 0}
-    .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:20px}
-    .day-slot{text-align:center;padding:10px;border-radius:5px;font-size:12px}
+    .provider-priority{display:inline-block;background:#007bff;color:#fff;padding:4px 8px;border-radius:12px;font-size:12px;margin-top:4px}
+    .provider-info{margin-bottom:12px}
+    .provider-info p{margin:5px 0;color:#495057}
+    .provider-photo{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid #dee2e6}
+    .provider-avatar{width:64px;height:64px;border-radius:50%;background:#dee2e6;color:#495057;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;text-transform:uppercase}
+    .provider-services{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .provider-tag{background:#e9ecef;color:#495057;padding:4px 10px;border-radius:12px;font-size:12px}
+    .service-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .service-chip{border:1px solid #ced4da;border-radius:20px;padding:6px 12px;background:#fff;color:#495057;cursor:pointer;font-size:13px;transition:all .2s}
+    .service-chip:hover{border-color:#007bff}
+    .service-chip.selected{background:#007bff;color:#fff;border-color:#007bff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+    .service-chip:focus{outline:3px solid rgba(0,123,255,.25)}
+    .service-chip.custom{border-style:dashed;background:#f8f9fa;color:#495057;cursor:default;pointer-events:none;margin-top:4px}
+    .service-empty{font-size:13px;color:#6c757d;padding:8px 0}
+    .service-loading{font-size:13px;color:#6c757d;padding:8px 0}
+    .service-helper-text{font-size:12px;color:#6c757d;margin-top:6px}
+    .service-divider{flex-basis:100%;font-size:12px;color:#6c757d;margin-top:6px}
+    .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:15px 0}
+    .day-slot{padding:10px;border-radius:5px;font-size:12px;display:flex;flex-direction:column;gap:6px;text-align:center}
+    .day-slot div{margin:0 auto}
     .day-unavailable{background:#f8f9fa;border:1px solid #dee2e6;color:#6c757d}
-    .provider-actions{display:flex;gap:10px}
+    .day-available{background:#e8f5e9;border:1px solid #c3e6cb;color:#1e7e34}
+    .provider-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .edit-btn{background:#007bff;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
     .delete-btn{background:#dc3545;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
     .loading{text-align:center;padding:40px;color:#666}
     .debug-info{background:#f8f9fa;border:1px solid #dee2e6;padding:10px;margin:10px 0;border-radius:4px;font-family:monospace;font-size:12px;max-height:300px;overflow-y:auto}
+    .form-error{margin-top:10px;color:#dc3545;font-size:14px;display:none}
+    .availability-editor{display:flex;flex-direction:column;gap:10px}
+    .availability-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:10px;align-items:center}
+    .availability-row select{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff}
+    .time-select{width:100%}
+    .availability-row button{padding:8px 12px;border:0;border-radius:4px;background:#f8d7da;color:#721c24;cursor:pointer}
+    .availability-empty{padding:10px;border:1px dashed #ced4da;border-radius:4px;color:#6c757d;font-size:13px;text-align:center}
+    .availability-add-btn{padding:6px 12px;background:#17a2b8;color:#fff;border:0;border-radius:4px;cursor:pointer;font-size:13px}
     /* confirm modal */
     .cm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;display:flex;align-items:center;justify-content:center}
     .cm-box{background:#fff;border-radius:8px;width:min(480px,90vw);padding:20px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
@@ -86,6 +111,23 @@
           <label for="priority"><b>Priority</b></label>
           <input id="priority" name="priority" type="number" min="1" value="1" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
         </div>
+        <div style="margin-top:15px">
+          <label><b>Services</b></label>
+          <div id="service-options" class="service-options"></div>
+          <div class="service-helper-text">Click to select the services this provider offers. Options match the booking page.</div>
+        </div>
+        <div style="margin-top:15px">
+          <label for="photoUrl"><b>Photo URL</b></label>
+          <input id="photoUrl" name="photoUrl" type="url" placeholder="https://example.com/photo.jpg" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+        </div>
+        <div style="margin-top:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <label><b>Weekly Availability</b></label>
+            <button type="button" class="availability-add-btn" onclick="addAvailabilitySlot()">Add slot</button>
+          </div>
+          <div id="availability-editor" class="availability-editor"></div>
+        </div>
+        <div id="form-error" class="form-error"></div>
         <div style="margin-top:20px">
           <button type="button" onclick="closeModal()" style="padding:10px 16px;border:0;border-radius:6px;background:#6c757d;color:#fff;cursor:pointer">Cancel</button>
           <button id="submit-btn" type="submit" style="padding:10px 16px;border:0;border-radius:6px;background:#007bff;color:#fff;cursor:pointer">Save</button>
@@ -95,19 +137,562 @@
   </div>
 
   <script>
-    const API_BASE = "https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com";
+    function sanitizeBaseUrl(value){
+      if(!value || typeof value !== "string") return "";
+      const trimmed=value.trim();
+      if(!trimmed) return "";
+      return trimmed.replace(/\/+$/,"");
+    }
+
+    function detectApiBase(){
+      try{
+        const params=new URLSearchParams(window.location.search);
+        const paramBase=params.get("apiBase") || params.get("api_base");
+        if(paramBase){
+          const decoded=decodeURIComponent(paramBase);
+          const clean=sanitizeBaseUrl(decoded);
+          if(clean) return clean;
+        }
+      }catch(err){
+        console.warn("providers: unable to parse apiBase param", err);
+      }
+
+      const globalCandidates=[
+        window.EDINA_API_BASE,
+        window.API_BASE,
+        document.querySelector('meta[name="api-base"]')?.content,
+        document.documentElement?.dataset?.apiBase
+      ];
+
+      for(const candidate of globalCandidates){
+        const clean=sanitizeBaseUrl(candidate);
+        if(clean) return clean;
+      }
+
+      return "https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com";
+    }
+
+    const API_BASE = detectApiBase();
+    const CACHE_BUSTER_KEY = "_";
     const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const fullDayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const dayNameLookup = (()=>{
+      const map=new Map();
+      fullDayNames.forEach((name,index)=>{
+        map.set(String(index),index);
+        map.set(name.toLowerCase(),index);
+        map.set(name.slice(0,3).toLowerCase(),index);
+      });
+      return map;
+    })();
+    const DEFAULT_START_TIME = "09:00";
+    const DEFAULT_END_TIME = "17:00";
     let currentMode = "add";
     let currentProviderId = null;
     let cacheById = new Map();
+    let availabilityState = [];
+    let serviceCatalog = [];
+    let serviceTokenMap = new Map();
+    let serviceLabelById = new Map();
+    let servicesLoading = false;
+    let servicesLoadFailed = false;
+    let serviceSelection = new Set();
+    let customServiceCarryover = [];
 
-    function escapeHtml(s){ return String(s||"").replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+    function escapeHtml(value){
+      const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"};
+      return String(value ?? "").replace(/[&<>"']/g,c=>map[c]||c);
+    }
+
     function debugLog(msg,data){
       const el=document.getElementById("debug-info");
       const t=new Date().toLocaleTimeString();
       el.innerHTML+=`<div>[${t}] ${escapeHtml(msg)} ${data?escapeHtml(JSON.stringify(data)):""}</div>`;
       el.scrollTop=el.scrollHeight;
       console.log(msg,data||"");
+    }
+
+    debugLog("Using API base", { base: API_BASE });
+
+    function showFormError(message){
+      const el=document.getElementById("form-error");
+      if(!el) return;
+      if(message){
+        el.textContent=message;
+        el.style.display="block";
+      }else{
+        el.textContent="";
+        el.style.display="none";
+      }
+    }
+
+    function coerceString(value){
+      if(value===undefined || value===null) return "";
+      return String(value).trim();
+    }
+
+    function extractServiceValues(value){
+      if(Array.isArray(value)){
+        const result=[];
+        value.forEach(entry=>{
+          if(!entry) return;
+          if(typeof entry === "object"){
+            const candidate=entry.service_id ?? entry.serviceId ?? entry.id ?? entry.pk ?? entry.slug ?? entry.code ?? entry.name;
+            const str=coerceString(candidate);
+            if(str) result.push(str);
+          }else{
+            const str=coerceString(entry);
+            if(str) result.push(str);
+          }
+        });
+        return result;
+      }
+      if(typeof value === "string"){
+        return value
+          .split(/[\n,]+/)
+          .map(item=>item.trim())
+          .filter(Boolean);
+      }
+      return [];
+    }
+
+    function normalizeServiceRecord(raw){
+      if(!raw) return null;
+      const id=coerceString(raw.service_id || raw.id || raw.pk || raw.slug || raw.code || raw.name);
+      const name=coerceString(raw.name || raw.title);
+      if(!id || !name) return null;
+      const aliases=[];
+      if(Array.isArray(raw.aliases)){
+        raw.aliases.forEach(alias=>{
+          const str=coerceString(alias);
+          if(str) aliases.push(str);
+        });
+      }
+      const slug=coerceString(raw.slug);
+      if(slug) aliases.push(slug);
+      return { id, name, aliases };
+    }
+
+    function registerServiceToken(token,id){
+      const normalized=coerceString(token).toLowerCase();
+      if(!normalized) return;
+      if(!serviceTokenMap.has(normalized)){
+        serviceTokenMap.set(normalized,id);
+      }
+    }
+
+    function setServiceCatalog(services){
+      serviceCatalog=services.slice().sort((a,b)=>a.name.localeCompare(b.name));
+      serviceTokenMap=new Map();
+      serviceLabelById=new Map();
+      serviceCatalog.forEach(service=>{
+        serviceLabelById.set(service.id,service.name);
+        registerServiceToken(service.id,service.id);
+        registerServiceToken(service.id.replace(/^service[#:/]/i,""),service.id);
+        if(service.id.includes("#")){
+          registerServiceToken(service.id.split("#").pop(),service.id);
+        }
+        registerServiceToken(service.name,service.id);
+        service.aliases.forEach(alias=>registerServiceToken(alias,service.id));
+      });
+      renderServiceSelector();
+      updateServiceHelper();
+    }
+
+    function lookupServiceId(value){
+      const key=coerceString(value).toLowerCase();
+      if(!key) return null;
+      if(serviceTokenMap.has(key)) return serviceTokenMap.get(key);
+      return null;
+    }
+
+    function splitServiceValues(values){
+      const canonicalIds=[];
+      const customValues=[];
+      const rawValues=[];
+      const seenIds=new Set();
+      const seenCustom=new Set();
+      (Array.isArray(values)?values:[]).forEach(value=>{
+        const str=coerceString(value);
+        if(!str) return;
+        rawValues.push(str);
+        const canonical=lookupServiceId(str);
+        if(canonical){
+          if(!seenIds.has(canonical)){
+            canonicalIds.push(canonical);
+            seenIds.add(canonical);
+          }
+        }else if(!seenCustom.has(str)){
+          customValues.push(str);
+          seenCustom.add(str);
+        }
+      });
+      return { canonicalIds, customValues, rawValues };
+    }
+
+    function formatServiceLabel(value){
+      const str=coerceString(value);
+      if(!str) return "";
+      const canonical=lookupServiceId(str);
+      if(canonical && serviceLabelById.has(canonical)){
+        return serviceLabelById.get(canonical);
+      }
+      if(serviceLabelById.has(str)){
+        return serviceLabelById.get(str);
+      }
+      return str;
+    }
+
+    function renderServiceSelector(){
+      const container=document.getElementById("service-options");
+      if(!container) return;
+      if(servicesLoading){
+        container.innerHTML='<div class="service-loading">Loading services...</div>';
+        return;
+      }
+      let chipsHtml="";
+      if(serviceCatalog.length){
+        chipsHtml=serviceCatalog.map(service=>{
+          const selected=serviceSelection.has(service.id)?" selected":"";
+          return `<button type="button" class="service-chip${selected}" data-service-id="${escapeHtml(service.id)}">${escapeHtml(service.name)}</button>`;
+        }).join("");
+      }
+      const customChips=customServiceCarryover.length
+        ? `<div class="service-divider">Saved custom services (kept as-is)</div>${customServiceCarryover.map(value=>`<span class="service-chip custom" title="Saved custom service">${escapeHtml(formatServiceLabel(value) || value)}</span>`).join("")}`
+        : "";
+      if(chipsHtml){
+        container.innerHTML=`${chipsHtml}${customChips}`;
+      }else{
+        const message=servicesLoadFailed?"Unable to load services. Refresh to try again.":"No services are configured yet.";
+        container.innerHTML=`<div class="service-empty">${escapeHtml(message)}</div>${customChips}`;
+      }
+      if(serviceCatalog.length){
+        container.querySelectorAll('.service-chip[data-service-id]').forEach(button=>{
+          button.addEventListener('click',()=>{
+            const id=button.dataset.serviceId;
+            if(!id) return;
+            if(serviceSelection.has(id)){
+              serviceSelection.delete(id);
+              button.classList.remove('selected');
+            }else{
+              serviceSelection.add(id);
+              button.classList.add('selected');
+            }
+            updateServiceHelper();
+          });
+        });
+      }
+    }
+
+    function updateServiceHelper(){
+      const helper=document.querySelector('.service-helper-text');
+      if(!helper) return;
+      if(servicesLoading){
+        helper.textContent='Loading services...';
+        return;
+      }
+      if(servicesLoadFailed){
+        helper.textContent='Unable to load services. Refresh to try again.';
+        return;
+      }
+      if(!serviceCatalog.length){
+        helper.textContent='No services are configured yet. Add services from the booking page first.';
+        return;
+      }
+      const total=serviceSelection.size + customServiceCarryover.length;
+      if(total===0){
+        helper.textContent='Click to select the services this provider offers. Options match the booking page.';
+      }else if(total===1){
+        helper.textContent='1 service selected.';
+      }else{
+        helper.textContent=`${total} services selected.`;
+      }
+    }
+
+    function resetServiceSelection(){
+      serviceSelection=new Set();
+      customServiceCarryover=[];
+      renderServiceSelector();
+      updateServiceHelper();
+    }
+
+    function applyProviderServices(provider){
+      let canonicalIds=Array.isArray(provider?.service_ids)?provider.service_ids:[];
+      let customValues=Array.isArray(provider?.custom_services)?provider.custom_services:[];
+      if(!canonicalIds.length && provider){
+        const values=extractServiceValues(provider.services_raw || provider.services || []);
+        const split=splitServiceValues(values);
+        canonicalIds=split.canonicalIds;
+        customValues=split.customValues;
+      }
+      serviceSelection=new Set(canonicalIds);
+      customServiceCarryover=[...customValues];
+      renderServiceSelector();
+      updateServiceHelper();
+    }
+
+    function buildProviderServiceLabels(provider){
+      const labels=[];
+      const seen=new Set();
+      const canonical=Array.isArray(provider?.service_ids)?provider.service_ids:[];
+      canonical.forEach(id=>{
+        const label=formatServiceLabel(id);
+        if(label && !seen.has(label)){
+          labels.push(label);
+          seen.add(label);
+        }
+      });
+      const custom=Array.isArray(provider?.custom_services)?provider.custom_services:[];
+      custom.forEach(value=>{
+        const label=coerceString(value);
+        if(label && !seen.has(label)){
+          labels.push(label);
+          seen.add(label);
+        }
+      });
+      if(!labels.length){
+        const rawValues=Array.isArray(provider?.services_raw)?provider.services_raw:(Array.isArray(provider?.services)?provider.services:[]);
+        rawValues.forEach(value=>{
+          const label=formatServiceLabel(value);
+          if(label && !seen.has(label)){
+            labels.push(label);
+            seen.add(label);
+          }
+        });
+      }
+      return labels;
+    }
+
+    function parseDayValue(value){
+      if(value===undefined || value===null) return null;
+      if(typeof value === "number" && Number.isFinite(value)){
+        const day=Math.round(value);
+        if(day>=0 && day<=6) return day;
+      }
+      const str=String(value).trim().toLowerCase();
+      if(!str) return null;
+      if(dayNameLookup.has(str)) return dayNameLookup.get(str);
+      const numeric=Number(str);
+      if(Number.isFinite(numeric) && numeric>=0 && numeric<=6) return numeric;
+      return null;
+    }
+
+    function coerceTime(value){
+      const str=String(value ?? "").trim();
+      if(!str) return "";
+      const hhmm=/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/;
+      const hhmmMatch=hhmm.exec(str);
+      if(hhmmMatch){
+        let hour=Number(hhmmMatch[1]);
+        let minute=Number(hhmmMatch[2]);
+        if(!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+        hour=Math.min(Math.max(hour,0),23);
+        minute=Math.min(Math.max(minute,0),59);
+        return `${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+      }
+      const ampm=/^(\d{1,2}):(\d{2})\s*(am|pm)$/i.exec(str);
+      if(ampm){
+        let hour=Number(ampm[1]);
+        let minute=Number(ampm[2]);
+        if(!Number.isFinite(hour) || !Number.isFinite(minute)) return "";
+        const suffix=ampm[3].toLowerCase();
+        if(suffix==="pm" && hour<12) hour+=12;
+        if(suffix==="am" && hour===12) hour=0;
+        hour=Math.min(Math.max(hour,0),23);
+        minute=Math.min(Math.max(minute,0),59);
+        return `${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+      }
+      const intMatch=/^(\d{1,2})$/.exec(str);
+      if(intMatch){
+        let hour=Number(intMatch[1]);
+        if(!Number.isFinite(hour)) return "";
+        hour=Math.min(Math.max(hour,0),23);
+        return `${String(hour).padStart(2,"0")}:00`;
+      }
+      return "";
+    }
+
+    function createTimeOptions(){
+      const options=[];
+      for(let hour=0;hour<24;hour+=1){
+        for(let minute=0;minute<60;minute+=30){
+          const value=`${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+          options.push({ value, label: formatTime(value) });
+        }
+      }
+      return options;
+    }
+
+    const timeOptions=createTimeOptions();
+
+    function buildTimeSelect(field,value){
+      const current=coerceTime(value);
+      const options=['<option value="">Select time</option>'];
+      timeOptions.forEach(option=>{
+        const selected=option.value===current?" selected":"";
+        options.push(`<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(option.label)}</option>`);
+      });
+      return `<select data-field="${field}" class="time-select">${options.join("")}</select>`;
+    }
+
+    function normalizeAvailabilityList(raw){
+      const source=Array.isArray(raw)?raw:[];
+      const normalized=[];
+      for(const entry of source){
+        if(!entry || typeof entry !== "object") continue;
+        const day=parseDayValue(entry.day ?? entry.weekday ?? entry.dayOfWeek);
+        const start=coerceTime(entry.start ?? entry.start_time ?? entry.startTime);
+        const end=coerceTime(entry.end ?? entry.end_time ?? entry.endTime);
+        const notes=coerceString(entry.notes ?? entry.note);
+        if(day===null || !start || !end) continue;
+        const slot={ day, start, end };
+        if(notes) slot.notes=notes;
+        normalized.push(slot);
+      }
+      normalized.sort((a,b)=> (a.day - b.day) || a.start.localeCompare(b.start));
+      return normalized;
+    }
+
+    function setAvailabilityState(slots){
+      const normalized=normalizeAvailabilityList(slots);
+      availabilityState=normalized.map(slot=>({ day:slot.day, start:slot.start, end:slot.end, notes:slot.notes || "" }));
+      if(!availabilityState.length){
+        availabilityState.push({ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" });
+      }
+      renderAvailabilityEditor();
+    }
+
+    function addAvailabilitySlot(slot){
+      const defaults={ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" };
+      const incoming=slot || {};
+      const day=parseDayValue(incoming.day);
+      availabilityState.push({
+        day: day===null ? defaults.day : day,
+        start: coerceTime(incoming.start) || defaults.start,
+        end: coerceTime(incoming.end) || defaults.end,
+        notes: coerceString(incoming.notes || "")
+      });
+      renderAvailabilityEditor();
+    }
+
+    function renderAvailabilityEditor(){
+      const container=document.getElementById("availability-editor");
+      if(!container) return;
+      if(!availabilityState.length){
+        container.innerHTML='<div class="availability-empty">No availability defined. Add a slot to begin.</div>';
+        return;
+      }
+      container.innerHTML=availabilityState.map((slot,index)=>`
+        <div class="availability-row" data-index="${index}">
+          <select data-field="day">
+            ${fullDayNames.map((label,idx)=>`<option value="${idx}" ${Number(slot.day)===idx?"selected":""}>${label}</option>`).join("")}
+          </select>
+          ${buildTimeSelect("start",slot.start)}
+          ${buildTimeSelect("end",slot.end)}
+          <button type="button" data-action="remove">Remove</button>
+        </div>
+      `).join("");
+
+      container.querySelectorAll("select[data-field]").forEach(select=>{
+        select.addEventListener("change",event=>{
+          const row=event.target.closest(".availability-row");
+          const index=Number(row?.dataset?.index);
+          if(!Number.isFinite(index) || !availabilityState[index]) return;
+          const field=event.target.dataset.field;
+          if(field==="day"){
+            availabilityState[index].day=Number(event.target.value);
+          }
+          if(field==="start" || field==="end"){
+            availabilityState[index][field]=event.target.value;
+          }
+        });
+      });
+
+      container.querySelectorAll("button[data-action='remove']").forEach(btn=>{
+        btn.addEventListener("click",event=>{
+          const row=event.target.closest(".availability-row");
+          const index=Number(row?.dataset?.index);
+          if(!Number.isFinite(index)) return;
+          availabilityState.splice(index,1);
+          if(!availabilityState.length){
+            availabilityState.push({ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" });
+          }
+          renderAvailabilityEditor();
+        });
+      });
+    }
+
+    function availabilityStateToPayload(){
+      return availabilityState
+        .map(slot=>{
+          const day=parseDayValue(slot.day);
+          const start=coerceTime(slot.start);
+          const end=coerceTime(slot.end);
+          if(day===null || !start || !end) return null;
+          const result={ day, start, end };
+          const notes=coerceString(slot.notes);
+          if(notes) result.notes=notes;
+          return result;
+        })
+        .filter(Boolean);
+    }
+
+    function formatTime(value){
+      const match=/^(\d{1,2}):(\d{2})$/.exec(String(value ?? "").trim());
+      if(!match) return String(value ?? "");
+      let hour=Number(match[1]);
+      const minute=match[2];
+      const suffix=hour>=12?"PM":"AM";
+      hour=hour%12;
+      if(hour===0) hour=12;
+      return `${hour}:${minute} ${suffix}`;
+    }
+
+    function buildInitials(provider){
+      const first=coerceString(provider.first_name || provider.firstName || "");
+      const last=coerceString(provider.last_name || provider.lastName || "");
+      const combined=`${first.slice(0,1)}${last.slice(0,1)}`.toUpperCase();
+      if(combined){
+        return combined;
+      }
+      const fallback=coerceString(provider.provider_name || provider.name || "");
+      if(fallback){
+        const letters=fallback.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase();
+        if(letters){
+          return letters;
+        }
+      }
+      return "👤";
+    }
+
+    function buildScheduleHtml(availability){
+      const byDay=new Map();
+      (Array.isArray(availability)?availability:[]).forEach(slot=>{
+        const day=parseDayValue(slot.day);
+        const start=coerceTime(slot.start);
+        const end=coerceTime(slot.end);
+        if(day===null || !start || !end) return;
+        if(!byDay.has(day)) byDay.set(day,[]);
+        byDay.get(day).push({
+          start,
+          end,
+          notes: slot.notes ? coerceString(slot.notes) : ""
+        });
+      });
+      return dayNames.map((label,idx)=>{
+        const slots=byDay.get(idx) || [];
+        if(!slots.length){
+          return `<div class="day-slot day-unavailable"><div><b>${label}</b></div><div>Unavailable</div></div>`;
+        }
+        const slotHtml=slots
+          .sort((a,b)=>a.start.localeCompare(b.start))
+          .map(slot=>{
+            const timeLabel=`${escapeHtml(formatTime(slot.start))} - ${escapeHtml(formatTime(slot.end))}`;
+            return `<div>${timeLabel}</div>`;
+          })
+          .join("");
+        return `<div class="day-slot day-available"><div><b>${label}</b></div><div>${slotHtml}</div></div>`;
+      }).join("");
     }
 
     function confirmModal(message){
@@ -130,154 +715,306 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", loadProviders);
+    function addCacheBuster(url){
+      try{
+        const parsed=new URL(url, window.location.origin);
+        parsed.searchParams.set(CACHE_BUSTER_KEY, Date.now().toString());
+        return parsed.toString();
+      }catch(err){
+        const sep=url.includes("?")?"&":"?";
+        return `${url}${sep}${CACHE_BUSTER_KEY}=${Date.now()}`;
+      }
+    }
+
+    function withNoCache(options={}){
+      const headers={ "Cache-Control":"no-cache", ...(options.headers||{}) };
+      return { ...options, headers, cache:"no-store" };
+    }
+
+    document.addEventListener("DOMContentLoaded",async()=>{
+      setAvailabilityState([]);
+      servicesLoading=true;
+      servicesLoadFailed=false;
+      renderServiceSelector();
+      updateServiceHelper();
+      await loadServiceCatalog();
+      await loadProviders();
+    });
+
+    async function loadServiceCatalog(){
+      servicesLoading=true;
+      servicesLoadFailed=false;
+      renderServiceSelector();
+      updateServiceHelper();
+      try{
+        const response=await fetch(addCacheBuster(`${API_BASE}/services`), withNoCache());
+        let payload={};
+        try{ payload=await response.json(); }catch(err){ payload={}; }
+        const services=Array.isArray(payload)?payload:(Array.isArray(payload?.services)?payload.services:[]);
+        const normalized=services.map(normalizeServiceRecord).filter(Boolean);
+        debugLog("GET /services", {status:response.status,count:normalized.length});
+        if(!response.ok){
+          throw new Error(`Service load failed with status ${response.status}`);
+        }
+        servicesLoading=false;
+        servicesLoadFailed=false;
+        setServiceCatalog(normalized);
+      }catch(error){
+        debugLog("loadServiceCatalog error", error);
+        servicesLoading=false;
+        servicesLoadFailed=true;
+        serviceCatalog=[];
+        serviceTokenMap=new Map();
+        serviceLabelById=new Map();
+        renderServiceSelector();
+        updateServiceHelper();
+      }
+    }
 
     function normalizeProvider(raw){
       if(!raw) return null;
-      const provider_id = raw.provider_id || raw.id || raw.pk || "";
-      if(!provider_id) return null;
-      const first_name = raw.first_name || raw.firstName || "";
-      const last_name = raw.last_name || raw.lastName || "";
-      const provider_name = raw.name || [first_name,last_name].filter(Boolean).join(" ");
+      const providerId = raw.provider_id || raw.id || raw.pk || "";
+      if(!providerId) return null;
+      const firstName = coerceString(raw.first_name || raw.firstName);
+      const lastName = coerceString(raw.last_name || raw.lastName);
+      const providedName = coerceString(raw.name || raw.provider_name || raw.providerName);
+      const providerName = providedName || [firstName,lastName].filter(Boolean).join(" ");
+      const serviceValues = extractServiceValues(raw.services || raw.specialties || raw.service_names || raw.serviceIds || []);
+      const serviceSplit = splitServiceValues(serviceValues);
+      const servicesForDisplay = serviceSplit.canonicalIds.length ? serviceSplit.canonicalIds : serviceSplit.rawValues;
       return {
-        provider_id,
-        id: provider_id,
-        first_name,
-        last_name,
-        provider_name,
-        email: raw.email || "",
-        phone: raw.phone || "",
+        provider_id: providerId,
+        id: providerId,
+        first_name: firstName,
+        last_name: lastName,
+        provider_name: providerName,
+        email: coerceString(raw.email),
+        phone: coerceString(raw.phone),
         priority: typeof raw.priority === "number" ? raw.priority : Number(raw.priority) || 1,
-        services: Array.isArray(raw.services) ? raw.services : [],
-        availability: Array.isArray(raw.availability) ? raw.availability : (Array.isArray(raw.schedule) ? raw.schedule : []),
-        bio: raw.bio || "",
-        photoUrl: raw.photoUrl || raw.photo_url || ""
+        services: servicesForDisplay,
+        service_ids: serviceSplit.canonicalIds,
+        custom_services: serviceSplit.customValues,
+        services_raw: serviceSplit.rawValues,
+        availability: normalizeAvailabilityList(raw.availability || raw.schedule || raw.slots || []),
+        bio: coerceString(raw.bio || raw.biography || ""),
+        photoUrl: coerceString(raw.photoUrl || raw.photo_url || raw.photo || "")
       };
     }
 
     async function loadProviders(){
       try{
-        const r=await fetch(`${API_BASE}/providers`);
-        const payload=await r.json();
+        const response=await fetch(addCacheBuster(`${API_BASE}/providers`), withNoCache());
+        let payload={};
+        try{ payload=await response.json(); }catch(err){ payload={}; }
         const providers=Array.isArray(payload)?payload:(Array.isArray(payload?.providers)?payload.providers:[]);
         const normalized=providers.map(normalizeProvider).filter(Boolean);
+        normalized.sort((a,b)=>{
+          const ap=typeof a.priority === "number" ? a.priority : Number(a.priority) || Number.MAX_SAFE_INTEGER;
+          const bp=typeof b.priority === "number" ? b.priority : Number(b.priority) || Number.MAX_SAFE_INTEGER;
+          if(ap === bp){
+            return (a.provider_name || "").localeCompare(b.provider_name || "");
+          }
+          return ap - bp;
+        });
 
-        debugLog("GET /providers", {status:r.status,count:normalized.length});
-        if(!r.ok){ document.getElementById("provider-list").innerHTML='<div class="loading">Error loading providers</div>'; return; }
+        debugLog("GET /providers", {status:response.status,count:normalized.length});
+        if(!response.ok){
+          document.getElementById("provider-list").innerHTML='<div class="loading">Error loading providers</div>';
+          return;
+        }
         cacheById.clear();
         normalized.forEach(p=>cacheById.set(p.provider_id,p));
         renderProviders(normalized);
-      }catch(e){
-        debugLog("loadProviders error", e);
+      }catch(error){
+        debugLog("loadProviders error", error);
         document.getElementById("provider-list").innerHTML='<div class="loading">Failed to load</div>';
       }
     }
 
     function renderProviders(list){
       const container=document.getElementById("provider-list");
-      if(!list?.length){ container.innerHTML='<div class="loading">No providers found</div>'; return; }
+      if(!list?.length){
+        container.innerHTML='<div class="loading">No providers found</div>';
+        return;
+      }
       container.innerHTML=list.map(p=>{
-        const name = p.provider_name || [p.first_name,p.last_name].filter(Boolean).join(" ");
+        const fallbackName=[p.first_name,p.last_name].filter(Boolean).join(" ");
+        const displayName=fallbackName || p.provider_name || "Provider";
+        const rawName=displayName;
+        const safeName=escapeHtml(displayName);
+        const serviceLabels=buildProviderServiceLabels(p);
+        const servicesHtml=serviceLabels.length
+          ? `<div class="provider-services">${serviceLabels.map(label=>`<span class="provider-tag">${escapeHtml(label)}</span>`).join("")}</div>`
+          : `<div class="provider-services"><span class="provider-tag">No services selected yet</span></div>`;
+        const photoSection=p.photoUrl?`<img src="${escapeHtml(p.photoUrl)}" alt="${safeName}" class="provider-photo" loading="lazy"/>`:`<div class="provider-avatar">${escapeHtml(buildInitials(p))}</div>`;
+        const scheduleHtml=buildScheduleHtml(p.availability || []);
         return `
         <div class="provider-card">
           <div class="provider-header">
-            <div>
-              <div class="provider-name">${escapeHtml(name||"Provider")}</div>
-              <div class="provider-priority">Priority ${Number(p.priority||1)}</div>
+            <div class="provider-header-main">
+              ${photoSection}
+              <div>
+                <div class="provider-name">${safeName}</div>
+                <div class="provider-priority">Priority ${Number(p.priority||1)}</div>
+              </div>
+            </div>
+            <div class="provider-actions">
+              <button class="edit-btn" onclick="editProvider('${encodeURIComponent(p.provider_id)}')">Edit</button>
+              <button class="delete-btn" onclick="deleteProvider('${encodeURIComponent(p.provider_id)}','${encodeURIComponent(rawName)}')">Delete</button>
             </div>
           </div>
           <div class="provider-info">
             <p>📧 ${escapeHtml(p.email||"undefined")}</p>
             <p>📞 ${escapeHtml(p.phone||"undefined")}</p>
           </div>
+          ${servicesHtml}
           <div class="availability-schedule">
-            ${dayNames.map(d=>`<div class="day-slot day-unavailable"><div><b>${d}</b></div><div>Unavailable</div></div>`).join("")}
-          </div>
-          <div class="provider-actions">
-            <button class="edit-btn" onclick="editProvider('${encodeURIComponent(p.provider_id)}')">Edit</button>
-            <button class="delete-btn" onclick="deleteProvider('${encodeURIComponent(p.provider_id)}','${escapeHtml(name)}')">Delete</button>
+            ${scheduleHtml}
           </div>
         </div>`;
       }).join("");
     }
 
     function openAddModal(){
-      currentMode="add"; currentProviderId=null;
+      currentMode="add";
+      currentProviderId=null;
       document.getElementById("modal-title").textContent="Add Provider";
-      document.getElementById("submit-btn").textContent="Add Provider";
+      const submitBtn=document.getElementById("submit-btn");
+      submitBtn.textContent="Add Provider";
+      submitBtn.disabled=false;
       document.getElementById("first_name").value="";
       document.getElementById("last_name").value="";
       document.getElementById("email").value="";
       document.getElementById("phone").value="";
       document.getElementById("priority").value="1";
+      document.getElementById("photoUrl").value="";
+      resetServiceSelection();
+      showFormError(null);
+      setAvailabilityState([]);
       document.getElementById("provider-modal").style.display="flex";
     }
 
-    function closeModal(){ document.getElementById("provider-modal").style.display="none"; }
+    function closeModal(){
+      document.getElementById("provider-modal").style.display="none";
+      showFormError(null);
+    }
 
     async function editProvider(providerIdEnc){
-      const id = decodeURIComponent(providerIdEnc);
-      currentMode="edit"; currentProviderId=id;
+      const id=decodeURIComponent(providerIdEnc);
+      currentMode="edit";
+      currentProviderId=id;
       document.getElementById("modal-title").textContent="Edit Provider";
-      document.getElementById("submit-btn").textContent="Update Provider";
+      const submitBtn=document.getElementById("submit-btn");
+      submitBtn.textContent="Update Provider";
+      submitBtn.disabled=false;
 
       try{
-        // try cache first
-        let p = cacheById.get(id);
-        if(!p){
-          const r = await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`);
-          const raw = r.ok ? await r.json() : null;
-          p = normalizeProvider(raw);
-          debugLog("GET /providers/{id}", {status:r.status, id});
-          if(p){ cacheById.set(p.provider_id,p); }
+        let provider=cacheById.get(id);
+        if(!provider){
+          const response=await fetch(addCacheBuster(`${API_BASE}/providers/${encodeURIComponent(id)}`), withNoCache());
+          const raw=response.ok?await response.json():null;
+          provider=normalizeProvider(raw);
+          debugLog("GET /providers/{id}", {status:response.status,id});
+          if(provider){ cacheById.set(provider.provider_id,provider); }
         }
-        if(!p){ debugLog("Edit not found", {id}); return; }
-        document.getElementById("first_name").value=p.first_name||p.firstName||"";
-        document.getElementById("last_name").value=p.last_name||p.lastName||"";
-        document.getElementById("email").value=p.email||"";
-        document.getElementById("phone").value=p.phone||"";
-        document.getElementById("priority").value=Number(p.priority||1);
+        if(!provider){
+          debugLog("Edit not found", {id});
+          return;
+        }
+        document.getElementById("first_name").value=provider.first_name||"";
+        document.getElementById("last_name").value=provider.last_name||"";
+        document.getElementById("email").value=provider.email||"";
+        document.getElementById("phone").value=provider.phone||"";
+        document.getElementById("priority").value=Number(provider.priority||1);
+        document.getElementById("photoUrl").value=provider.photoUrl||"";
+        applyProviderServices(provider);
+        showFormError(null);
+        setAvailabilityState(provider.availability||[]);
         document.getElementById("provider-modal").style.display="flex";
-      }catch(e){
-        debugLog("editProvider error", e);
+      }catch(error){
+        debugLog("editProvider error", error);
       }
     }
 
-    async function deleteProvider(providerIdEnc, name){
-      const id = decodeURIComponent(providerIdEnc);
-      const ok = await confirmModal(`Delete ${name}? This cannot be undone.`);
+    async function deleteProvider(providerIdEnc,encodedName){
+      const id=decodeURIComponent(providerIdEnc);
+      let name;
+      try{
+        name=decodeURIComponent(encodedName || "");
+      }catch(err){
+        name=encodedName || "";
+      }
+      const ok=await confirmModal(`Delete ${name}? This cannot be undone.`);
       if(!ok) return;
-      const r = await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`, { method:"DELETE" });
-      let body={}; try{ body = await r.json(); }catch(e){}
-      debugLog("DELETE /providers/{id}", {status:r.status, body});
-      if(!r.ok){ return; }
-      await loadProviders();
+      try{
+        const response=await fetch(addCacheBuster(`${API_BASE}/providers/${encodeURIComponent(id)}`), withNoCache({ method:"DELETE" }));
+        let body={};
+        try{ body=await response.json(); }catch(err){ body={}; }
+        debugLog("DELETE /providers/{id}", {status:response.status,body});
+        if(!response.ok){ return; }
+        await loadProviders();
+      }catch(error){
+        debugLog("deleteProvider error", error);
+      }
     }
 
-    async function handleSubmit(e){
-      e.preventDefault();
-      const payload = {
-        first_name: document.getElementById("first_name").value,
-        last_name: document.getElementById("last_name").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        priority: Number(document.getElementById("priority").value),
-        availability: []
+    async function handleSubmit(event){
+      event.preventDefault();
+      showFormError(null);
+      const payload={
+        first_name: coerceString(document.getElementById("first_name").value),
+        last_name: coerceString(document.getElementById("last_name").value),
+        email: coerceString(document.getElementById("email").value),
+        phone: coerceString(document.getElementById("phone").value),
+        priority: Number(document.getElementById("priority").value) || 1,
+        photoUrl: coerceString(document.getElementById("photoUrl").value),
+        availability: availabilityStateToPayload()
       };
 
-      let url = `${API_BASE}/providers`;
-      let method = "POST";
-      if(currentMode === "edit" && currentProviderId){
-        url = `${API_BASE}/providers/${encodeURIComponent(currentProviderId)}`;
-        method = "PUT";
+      const combinedServices=[...customServiceCarryover];
+      Array.from(serviceSelection).forEach(id=>{
+        if(!combinedServices.includes(id)){
+          combinedServices.push(id);
+        }
+      });
+      payload.services=combinedServices;
+      if(!payload.photoUrl) delete payload.photoUrl;
+
+      const derivedName=[payload.first_name,payload.last_name].filter(Boolean).join(" ");
+      if(derivedName){
+        payload.name=derivedName;
+        payload.provider_name=derivedName;
       }
 
-      const r = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
-      const body = await r.json().catch(()=>({}));
-      debugLog(`${method} ${url}`, {status:r.status, body});
-      if(r.ok){
+      let url=`${API_BASE}/providers`;
+      let method="POST";
+      if(currentMode === "edit" && currentProviderId){
+        url=`${API_BASE}/providers/${encodeURIComponent(currentProviderId)}`;
+        method="PUT";
+      }
+
+      const submitBtn=document.getElementById("submit-btn");
+      const originalLabel=submitBtn.textContent;
+      submitBtn.disabled=true;
+      submitBtn.textContent=method === "POST" ? "Saving..." : "Updating...";
+
+      try{
+        const response=await fetch(url,{ method, headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+        let body={};
+        try{ body=await response.json(); }catch(err){ body={}; }
+        debugLog(`${method} ${url}`, {status:response.status,body});
+        if(!response.ok){
+          showFormError(body?.error || "Unable to save provider.");
+          return;
+        }
         closeModal();
         await loadProviders();
+      }catch(error){
+        debugLog(`${method} ${url} failed`, error);
+        showFormError("Network error saving provider.");
+      }finally{
+        submitBtn.disabled=false;
+        submitBtn.textContent=originalLabel;
       }
     }
   </script>
