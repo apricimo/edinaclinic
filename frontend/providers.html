@@ -21,13 +21,25 @@
     .provider-avatar{width:64px;height:64px;border-radius:50%;background:#dee2e6;color:#495057;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;text-transform:uppercase}
     .provider-services{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
     .provider-tag{background:#e9ecef;color:#495057;padding:4px 10px;border-radius:12px;font-size:12px}
-    .provider-bio{margin:10px 0;color:#495057;line-height:1.5;font-size:14px}
+
+    .service-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .service-chip{border:1px solid #ced4da;border-radius:20px;padding:6px 12px;background:#fff;color:#495057;cursor:pointer;font-size:13px;transition:all .2s}
+    .service-chip:hover{border-color:#007bff}
+    .service-chip.selected{background:#007bff;color:#fff;border-color:#007bff;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+    .service-chip:focus{outline:3px solid rgba(0,123,255,.25)}
+    .service-chip.custom{border-style:dashed;background:#f8f9fa;color:#495057;cursor:default;pointer-events:none;margin-top:4px}
+    .service-empty{font-size:13px;color:#6c757d;padding:8px 0}
+    .service-loading{font-size:13px;color:#6c757d;padding:8px 0}
+    .service-helper-text{font-size:12px;color:#6c757d;margin-top:6px}
+    .service-divider{flex-basis:100%;font-size:12px;color:#6c757d;margin-top:6px}
+
     .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:15px 0}
     .day-slot{padding:10px;border-radius:5px;font-size:12px;display:flex;flex-direction:column;gap:6px;text-align:center}
     .day-slot div{margin:0 auto}
     .day-unavailable{background:#f8f9fa;border:1px solid #dee2e6;color:#6c757d}
     .day-available{background:#e8f5e9;border:1px solid #c3e6cb;color:#1e7e34}
-    .slot-note{font-size:11px;color:#495057;margin-top:4px}
+
+
     .provider-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .edit-btn{background:#007bff;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
     .delete-btn{background:#dc3545;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
@@ -35,8 +47,11 @@
     .debug-info{background:#f8f9fa;border:1px solid #dee2e6;padding:10px;margin:10px 0;border-radius:4px;font-family:monospace;font-size:12px;max-height:300px;overflow-y:auto}
     .form-error{margin-top:10px;color:#dc3545;font-size:14px;display:none}
     .availability-editor{display:flex;flex-direction:column;gap:10px}
-    .availability-row{display:grid;grid-template-columns:140px 1fr 1fr 1fr auto;gap:10px;align-items:center}
-    .availability-row select,.availability-row input{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
+
+    .availability-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:10px;align-items:center}
+    .availability-row select{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff}
+    .time-select{width:100%}
+
     .availability-row button{padding:8px 12px;border:0;border-radius:4px;background:#f8d7da;color:#721c24;cursor:pointer}
     .availability-empty{padding:10px;border:1px dashed #ced4da;border-radius:4px;color:#6c757d;font-size:13px;text-align:center}
     .availability-add-btn{padding:6px 12px;background:#17a2b8;color:#fff;border:0;border-radius:4px;cursor:pointer;font-size:13px}
@@ -108,12 +123,11 @@
           <input id="priority" name="priority" type="number" min="1" value="1" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
         </div>
         <div style="margin-top:15px">
-          <label for="services"><b>Services</b></label>
-          <textarea id="services" name="services" rows="2" placeholder="Separate with commas or new lines" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;resize:vertical"></textarea>
-        </div>
-        <div style="margin-top:15px">
-          <label for="bio"><b>Bio</b></label>
-          <textarea id="bio" name="bio" rows="3" placeholder="Short biography shown to patients" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;resize:vertical"></textarea>
+
+          <label><b>Services</b></label>
+          <div id="service-options" class="service-options"></div>
+          <div class="service-helper-text">Click to select the services this provider offers. Options match the booking page.</div>
+
         </div>
         <div style="margin-top:15px">
           <label for="photoUrl"><b>Photo URL</b></label>
@@ -136,7 +150,43 @@
   </div>
 
   <script>
-    const API_BASE = "https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com";
+    function sanitizeBaseUrl(value){
+      if(!value || typeof value !== "string") return "";
+      const trimmed=value.trim();
+      if(!trimmed) return "";
+      return trimmed.replace(/\/+$/,"");
+    }
+
+    function detectApiBase(){
+      try{
+        const params=new URLSearchParams(window.location.search);
+        const paramBase=params.get("apiBase") || params.get("api_base");
+        if(paramBase){
+          const decoded=decodeURIComponent(paramBase);
+          const clean=sanitizeBaseUrl(decoded);
+          if(clean) return clean;
+        }
+      }catch(err){
+        console.warn("providers: unable to parse apiBase param", err);
+      }
+
+      const globalCandidates=[
+        window.EDINA_API_BASE,
+        window.API_BASE,
+        document.querySelector('meta[name="api-base"]')?.content,
+        document.documentElement?.dataset?.apiBase
+      ];
+
+      for(const candidate of globalCandidates){
+        const clean=sanitizeBaseUrl(candidate);
+        if(clean) return clean;
+      }
+
+      return "https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com";
+    }
+
+    const API_BASE = detectApiBase();
+    const CACHE_BUSTER_KEY = "_";
     const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
     const fullDayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     const dayNameLookup = (()=>{
@@ -148,19 +198,30 @@
       });
       return map;
     })();
+
+    const DEFAULT_START_TIME = "09:00";
+    const DEFAULT_END_TIME = "17:00";
+
     let currentMode = "add";
     let currentProviderId = null;
     let cacheById = new Map();
     let availabilityState = [];
+
+    let serviceCatalog = [];
+    let serviceTokenMap = new Map();
+    let serviceLabelById = new Map();
+    let servicesLoading = false;
+    let servicesLoadFailed = false;
+    let serviceSelection = new Set();
+    let customServiceCarryover = [];
+
 
     function escapeHtml(value){
       const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"};
       return String(value ?? "").replace(/[&<>"']/g,c=>map[c]||c);
     }
 
-    function formatMultiline(text){
-      return escapeHtml(text).replace(/\n/g,"<br>");
-    }
+
 
     function debugLog(msg,data){
       const el=document.getElementById("debug-info");
@@ -169,6 +230,10 @@
       el.scrollTop=el.scrollHeight;
       console.log(msg,data||"");
     }
+
+
+    debugLog("Using API base", { base: API_BASE });
+
 
     function showFormError(message){
       const el=document.getElementById("form-error");
@@ -187,22 +252,242 @@
       return String(value).trim();
     }
 
-    function normalizeServices(value){
+
+    function extractServiceValues(value){
       if(Array.isArray(value)){
-        return value.map(coerceString).filter(Boolean);
+        const result=[];
+        value.forEach(entry=>{
+          if(!entry) return;
+          if(typeof entry === "object"){
+            const candidate=entry.service_id ?? entry.serviceId ?? entry.id ?? entry.pk ?? entry.slug ?? entry.code ?? entry.name;
+            const str=coerceString(candidate);
+            if(str) result.push(str);
+          }else{
+            const str=coerceString(entry);
+            if(str) result.push(str);
+          }
+        });
+        return result;
+
       }
       if(typeof value === "string"){
         return value
           .split(/[\n,]+/)
-          .map((item)=>item.trim())
+
+          .map(item=>item.trim())
+
           .filter(Boolean);
       }
       return [];
     }
 
-    function servicesToInput(services){
-      if(!Array.isArray(services) || !services.length) return "";
-      return services.join(", ");
+
+    function normalizeServiceRecord(raw){
+      if(!raw) return null;
+      const id=coerceString(raw.service_id || raw.id || raw.pk || raw.slug || raw.code || raw.name);
+      const name=coerceString(raw.name || raw.title);
+      if(!id || !name) return null;
+      const aliases=[];
+      if(Array.isArray(raw.aliases)){
+        raw.aliases.forEach(alias=>{
+          const str=coerceString(alias);
+          if(str) aliases.push(str);
+        });
+      }
+      const slug=coerceString(raw.slug);
+      if(slug) aliases.push(slug);
+      return { id, name, aliases };
+    }
+
+    function registerServiceToken(token,id){
+      const normalized=coerceString(token).toLowerCase();
+      if(!normalized) return;
+      if(!serviceTokenMap.has(normalized)){
+        serviceTokenMap.set(normalized,id);
+      }
+    }
+
+    function setServiceCatalog(services){
+      serviceCatalog=services.slice().sort((a,b)=>a.name.localeCompare(b.name));
+      serviceTokenMap=new Map();
+      serviceLabelById=new Map();
+      serviceCatalog.forEach(service=>{
+        serviceLabelById.set(service.id,service.name);
+        registerServiceToken(service.id,service.id);
+        registerServiceToken(service.id.replace(/^service[#:/]/i,""),service.id);
+        if(service.id.includes("#")){
+          registerServiceToken(service.id.split("#").pop(),service.id);
+        }
+        registerServiceToken(service.name,service.id);
+        service.aliases.forEach(alias=>registerServiceToken(alias,service.id));
+      });
+      renderServiceSelector();
+      updateServiceHelper();
+    }
+
+    function lookupServiceId(value){
+      const key=coerceString(value).toLowerCase();
+      if(!key) return null;
+      if(serviceTokenMap.has(key)) return serviceTokenMap.get(key);
+      return null;
+    }
+
+    function splitServiceValues(values){
+      const canonicalIds=[];
+      const customValues=[];
+      const rawValues=[];
+      const seenIds=new Set();
+      const seenCustom=new Set();
+      (Array.isArray(values)?values:[]).forEach(value=>{
+        const str=coerceString(value);
+        if(!str) return;
+        rawValues.push(str);
+        const canonical=lookupServiceId(str);
+        if(canonical){
+          if(!seenIds.has(canonical)){
+            canonicalIds.push(canonical);
+            seenIds.add(canonical);
+          }
+        }else if(!seenCustom.has(str)){
+          customValues.push(str);
+          seenCustom.add(str);
+        }
+      });
+      return { canonicalIds, customValues, rawValues };
+    }
+
+    function formatServiceLabel(value){
+      const str=coerceString(value);
+      if(!str) return "";
+      const canonical=lookupServiceId(str);
+      if(canonical && serviceLabelById.has(canonical)){
+        return serviceLabelById.get(canonical);
+      }
+      if(serviceLabelById.has(str)){
+        return serviceLabelById.get(str);
+      }
+      return str;
+    }
+
+    function renderServiceSelector(){
+      const container=document.getElementById("service-options");
+      if(!container) return;
+      if(servicesLoading){
+        container.innerHTML='<div class="service-loading">Loading services...</div>';
+        return;
+      }
+      let chipsHtml="";
+      if(serviceCatalog.length){
+        chipsHtml=serviceCatalog.map(service=>{
+          const selected=serviceSelection.has(service.id)?" selected":"";
+          return `<button type="button" class="service-chip${selected}" data-service-id="${escapeHtml(service.id)}">${escapeHtml(service.name)}</button>`;
+        }).join("");
+      }
+      const customChips=customServiceCarryover.length
+        ? `<div class="service-divider">Saved custom services (kept as-is)</div>${customServiceCarryover.map(value=>`<span class="service-chip custom" title="Saved custom service">${escapeHtml(formatServiceLabel(value) || value)}</span>`).join("")}`
+        : "";
+      if(chipsHtml){
+        container.innerHTML=`${chipsHtml}${customChips}`;
+      }else{
+        const message=servicesLoadFailed?"Unable to load services. Refresh to try again.":"No services are configured yet.";
+        container.innerHTML=`<div class="service-empty">${escapeHtml(message)}</div>${customChips}`;
+      }
+      if(serviceCatalog.length){
+        container.querySelectorAll('.service-chip[data-service-id]').forEach(button=>{
+          button.addEventListener('click',()=>{
+            const id=button.dataset.serviceId;
+            if(!id) return;
+            if(serviceSelection.has(id)){
+              serviceSelection.delete(id);
+              button.classList.remove('selected');
+            }else{
+              serviceSelection.add(id);
+              button.classList.add('selected');
+            }
+            updateServiceHelper();
+          });
+        });
+      }
+    }
+
+    function updateServiceHelper(){
+      const helper=document.querySelector('.service-helper-text');
+      if(!helper) return;
+      if(servicesLoading){
+        helper.textContent='Loading services...';
+        return;
+      }
+      if(servicesLoadFailed){
+        helper.textContent='Unable to load services. Refresh to try again.';
+        return;
+      }
+      if(!serviceCatalog.length){
+        helper.textContent='No services are configured yet. Add services from the booking page first.';
+        return;
+      }
+      const total=serviceSelection.size + customServiceCarryover.length;
+      if(total===0){
+        helper.textContent='Click to select the services this provider offers. Options match the booking page.';
+      }else if(total===1){
+        helper.textContent='1 service selected.';
+      }else{
+        helper.textContent=`${total} services selected.`;
+      }
+    }
+
+    function resetServiceSelection(){
+      serviceSelection=new Set();
+      customServiceCarryover=[];
+      renderServiceSelector();
+      updateServiceHelper();
+    }
+
+    function applyProviderServices(provider){
+      let canonicalIds=Array.isArray(provider?.service_ids)?provider.service_ids:[];
+      let customValues=Array.isArray(provider?.custom_services)?provider.custom_services:[];
+      if(!canonicalIds.length && provider){
+        const values=extractServiceValues(provider.services_raw || provider.services || []);
+        const split=splitServiceValues(values);
+        canonicalIds=split.canonicalIds;
+        customValues=split.customValues;
+      }
+      serviceSelection=new Set(canonicalIds);
+      customServiceCarryover=[...customValues];
+      renderServiceSelector();
+      updateServiceHelper();
+    }
+
+    function buildProviderServiceLabels(provider){
+      const labels=[];
+      const seen=new Set();
+      const canonical=Array.isArray(provider?.service_ids)?provider.service_ids:[];
+      canonical.forEach(id=>{
+        const label=formatServiceLabel(id);
+        if(label && !seen.has(label)){
+          labels.push(label);
+          seen.add(label);
+        }
+      });
+      const custom=Array.isArray(provider?.custom_services)?provider.custom_services:[];
+      custom.forEach(value=>{
+        const label=coerceString(value);
+        if(label && !seen.has(label)){
+          labels.push(label);
+          seen.add(label);
+        }
+      });
+      if(!labels.length){
+        const rawValues=Array.isArray(provider?.services_raw)?provider.services_raw:(Array.isArray(provider?.services)?provider.services:[]);
+        rawValues.forEach(value=>{
+          const label=formatServiceLabel(value);
+          if(label && !seen.has(label)){
+            labels.push(label);
+            seen.add(label);
+          }
+        });
+      }
+      return labels;
+
     }
 
     function parseDayValue(value){
@@ -254,6 +539,31 @@
       return "";
     }
 
+
+    function createTimeOptions(){
+      const options=[];
+      for(let hour=0;hour<24;hour+=1){
+        for(let minute=0;minute<60;minute+=30){
+          const value=`${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+          options.push({ value, label: formatTime(value) });
+        }
+      }
+      return options;
+    }
+
+    const timeOptions=createTimeOptions();
+
+    function buildTimeSelect(field,value){
+      const current=coerceTime(value);
+      const options=['<option value="">Select time</option>'];
+      timeOptions.forEach(option=>{
+        const selected=option.value===current?" selected":"";
+        options.push(`<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(option.label)}</option>`);
+      });
+      return `<select data-field="${field}" class="time-select">${options.join("")}</select>`;
+    }
+
+
     function normalizeAvailabilityList(raw){
       const source=Array.isArray(raw)?raw:[];
       const normalized=[];
@@ -276,13 +586,17 @@
       const normalized=normalizeAvailabilityList(slots);
       availabilityState=normalized.map(slot=>({ day:slot.day, start:slot.start, end:slot.end, notes:slot.notes || "" }));
       if(!availabilityState.length){
-        availabilityState.push({ day:1, start:"", end:"", notes:"" });
+
+        availabilityState.push({ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" });
+
       }
       renderAvailabilityEditor();
     }
 
     function addAvailabilitySlot(slot){
-      const defaults={ day:1, start:"", end:"", notes:"" };
+
+      const defaults={ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" };
+
       const incoming=slot || {};
       const day=parseDayValue(incoming.day);
       availabilityState.push({
@@ -306,35 +620,28 @@
           <select data-field="day">
             ${fullDayNames.map((label,idx)=>`<option value="${idx}" ${Number(slot.day)===idx?"selected":""}>${label}</option>`).join("")}
           </select>
-          <input type="time" data-field="start" value="${escapeHtml(slot.start||"")}"/>
-          <input type="time" data-field="end" value="${escapeHtml(slot.end||"")}"/>
-          <input type="text" data-field="notes" placeholder="Notes (optional)" value="${escapeHtml(slot.notes||"")}"/>
+
+          ${buildTimeSelect("start",slot.start)}
+          ${buildTimeSelect("end",slot.end)}
+
           <button type="button" data-action="remove">Remove</button>
         </div>
       `).join("");
 
-      container.querySelectorAll("select[data-field='day']").forEach(select=>{
-        select.addEventListener("change",event=>{
-          const row=event.target.closest(".availability-row");
-          const index=Number(row?.dataset?.index);
-          if(Number.isFinite(index) && availabilityState[index]){
-            availabilityState[index].day=Number(event.target.value);
-          }
-        });
-      });
 
-      container.querySelectorAll("input[data-field]").forEach(input=>{
-        input.addEventListener("input",event=>{
+      container.querySelectorAll("select[data-field]").forEach(select=>{
+        select.addEventListener("change",event=>{
           const row=event.target.closest(".availability-row");
           const index=Number(row?.dataset?.index);
           if(!Number.isFinite(index) || !availabilityState[index]) return;
           const field=event.target.dataset.field;
+          if(field==="day"){
+            availabilityState[index].day=Number(event.target.value);
+          }
           if(field==="start" || field==="end"){
             availabilityState[index][field]=event.target.value;
           }
-          if(field==="notes"){
-            availabilityState[index][field]=event.target.value;
-          }
+
         });
       });
 
@@ -345,7 +652,9 @@
           if(!Number.isFinite(index)) return;
           availabilityState.splice(index,1);
           if(!availabilityState.length){
-            availabilityState.push({ day:1, start:"", end:"", notes:"" });
+
+            availabilityState.push({ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" });
+
           }
           renderAvailabilityEditor();
         });
@@ -418,8 +727,9 @@
           .sort((a,b)=>a.start.localeCompare(b.start))
           .map(slot=>{
             const timeLabel=`${escapeHtml(formatTime(slot.start))} - ${escapeHtml(formatTime(slot.end))}`;
-            const note=slot.notes ? `<div class="slot-note">${escapeHtml(slot.notes)}</div>` : "";
-            return `<div>${timeLabel}${note}</div>`;
+
+            return `<div>${timeLabel}</div>`;
+
           })
           .join("");
         return `<div class="day-slot day-available"><div><b>${label}</b></div><div>${slotHtml}</div></div>`;
@@ -446,10 +756,63 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded",()=>{
+
+    function addCacheBuster(url){
+      try{
+        const parsed=new URL(url, window.location.origin);
+        parsed.searchParams.set(CACHE_BUSTER_KEY, Date.now().toString());
+        return parsed.toString();
+      }catch(err){
+        const sep=url.includes("?")?"&":"?";
+        return `${url}${sep}${CACHE_BUSTER_KEY}=${Date.now()}`;
+      }
+    }
+
+    function withNoCache(options={}){
+      const headers={ "Cache-Control":"no-cache", ...(options.headers||{}) };
+      return { ...options, headers, cache:"no-store" };
+    }
+
+    document.addEventListener("DOMContentLoaded",async()=>{
       setAvailabilityState([]);
-      loadProviders();
+      servicesLoading=true;
+      servicesLoadFailed=false;
+      renderServiceSelector();
+      updateServiceHelper();
+      await loadServiceCatalog();
+      await loadProviders();
     });
+
+    async function loadServiceCatalog(){
+      servicesLoading=true;
+      servicesLoadFailed=false;
+      renderServiceSelector();
+      updateServiceHelper();
+      try{
+        const response=await fetch(addCacheBuster(`${API_BASE}/services`), withNoCache());
+        let payload={};
+        try{ payload=await response.json(); }catch(err){ payload={}; }
+        const services=Array.isArray(payload)?payload:(Array.isArray(payload?.services)?payload.services:[]);
+        const normalized=services.map(normalizeServiceRecord).filter(Boolean);
+        debugLog("GET /services", {status:response.status,count:normalized.length});
+        if(!response.ok){
+          throw new Error(`Service load failed with status ${response.status}`);
+        }
+        servicesLoading=false;
+        servicesLoadFailed=false;
+        setServiceCatalog(normalized);
+      }catch(error){
+        debugLog("loadServiceCatalog error", error);
+        servicesLoading=false;
+        servicesLoadFailed=true;
+        serviceCatalog=[];
+        serviceTokenMap=new Map();
+        serviceLabelById=new Map();
+        renderServiceSelector();
+        updateServiceHelper();
+      }
+    }
+
 
     function normalizeProvider(raw){
       if(!raw) return null;
@@ -459,6 +822,11 @@
       const lastName = coerceString(raw.last_name || raw.lastName);
       const providedName = coerceString(raw.name || raw.provider_name || raw.providerName);
       const providerName = providedName || [firstName,lastName].filter(Boolean).join(" ");
+
+      const serviceValues = extractServiceValues(raw.services || raw.specialties || raw.service_names || raw.serviceIds || []);
+      const serviceSplit = splitServiceValues(serviceValues);
+      const servicesForDisplay = serviceSplit.canonicalIds.length ? serviceSplit.canonicalIds : serviceSplit.rawValues;
+
       return {
         provider_id: providerId,
         id: providerId,
@@ -468,7 +836,12 @@
         email: coerceString(raw.email),
         phone: coerceString(raw.phone),
         priority: typeof raw.priority === "number" ? raw.priority : Number(raw.priority) || 1,
-        services: normalizeServices(raw.services || raw.specialties || raw.service_names || []),
+
+        services: servicesForDisplay,
+        service_ids: serviceSplit.canonicalIds,
+        custom_services: serviceSplit.customValues,
+        services_raw: serviceSplit.rawValues,
+
         availability: normalizeAvailabilityList(raw.availability || raw.schedule || raw.slots || []),
         bio: coerceString(raw.bio || raw.biography || ""),
         photoUrl: coerceString(raw.photoUrl || raw.photo_url || raw.photo || "")
@@ -477,7 +850,9 @@
 
     async function loadProviders(){
       try{
-        const response=await fetch(`${API_BASE}/providers`);
+
+        const response=await fetch(addCacheBuster(`${API_BASE}/providers`), withNoCache());
+
         let payload={};
         try{ payload=await response.json(); }catch(err){ payload={}; }
         const providers=Array.isArray(payload)?payload:(Array.isArray(payload?.providers)?payload.providers:[]);
@@ -516,9 +891,12 @@
         const displayName=fallbackName || p.provider_name || "Provider";
         const rawName=displayName;
         const safeName=escapeHtml(displayName);
-        const services=Array.isArray(p.services)?p.services:[];
-        const servicesHtml=services.length?`<div class="provider-services">${services.map(s=>`<span class="provider-tag">${escapeHtml(s)}</span>`).join("")}</div>`:"";
-        const bioHtml=p.bio?`<div class="provider-bio">${formatMultiline(p.bio)}</div>`:"";
+
+        const serviceLabels=buildProviderServiceLabels(p);
+        const servicesHtml=serviceLabels.length
+          ? `<div class="provider-services">${serviceLabels.map(label=>`<span class="provider-tag">${escapeHtml(label)}</span>`).join("")}</div>`
+          : `<div class="provider-services"><span class="provider-tag">No services selected yet</span></div>`;
+
         const photoSection=p.photoUrl?`<img src="${escapeHtml(p.photoUrl)}" alt="${safeName}" class="provider-photo" loading="lazy"/>`:`<div class="provider-avatar">${escapeHtml(buildInitials(p))}</div>`;
         const scheduleHtml=buildScheduleHtml(p.availability || []);
         return `
@@ -542,7 +920,8 @@
             <p>📞 ${escapeHtml(p.phone||"undefined")}</p>
           </div>
           ${servicesHtml}
-          ${bioHtml}
+
+
           <div class="availability-schedule">
             ${scheduleHtml}
           </div>
@@ -562,12 +941,10 @@
       document.getElementById("email").value="";
       document.getElementById("phone").value="";
       document.getElementById("priority").value="1";
-      document.getElementById("services").value="";
-      document.getElementById("bio").value="";
+
       document.getElementById("photoUrl").value="";
-      const providerIdInput=document.getElementById("provider_id");
-      providerIdInput.value="";
-      providerIdInput.disabled=false;
+      resetServiceSelection();
+
       showFormError(null);
       setAvailabilityState([]);
       document.getElementById("provider-modal").style.display="flex";
@@ -590,7 +967,9 @@
       try{
         let provider=cacheById.get(id);
         if(!provider){
-          const response=await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`);
+
+          const response=await fetch(addCacheBuster(`${API_BASE}/providers/${encodeURIComponent(id)}`), withNoCache());
+
           const raw=response.ok?await response.json():null;
           provider=normalizeProvider(raw);
           debugLog("GET /providers/{id}", {status:response.status,id});
@@ -605,12 +984,10 @@
         document.getElementById("email").value=provider.email||"";
         document.getElementById("phone").value=provider.phone||"";
         document.getElementById("priority").value=Number(provider.priority||1);
-        document.getElementById("services").value=servicesToInput(provider.services||[]);
-        document.getElementById("bio").value=provider.bio||"";
+
         document.getElementById("photoUrl").value=provider.photoUrl||"";
-        const providerIdInput=document.getElementById("provider_id");
-        providerIdInput.value=provider.provider_id||"";
-        providerIdInput.disabled=true;
+        applyProviderServices(provider);
+
         showFormError(null);
         setAvailabilityState(provider.availability||[]);
         document.getElementById("provider-modal").style.display="flex";
@@ -630,7 +1007,9 @@
       const ok=await confirmModal(`Delete ${name}? This cannot be undone.`);
       if(!ok) return;
       try{
-        const response=await fetch(`${API_BASE}/providers/${encodeURIComponent(id)}`,{ method:"DELETE" });
+
+        const response=await fetch(addCacheBuster(`${API_BASE}/providers/${encodeURIComponent(id)}`), withNoCache({ method:"DELETE" }));
+
         let body={};
         try{ body=await response.json(); }catch(err){ body={}; }
         debugLog("DELETE /providers/{id}", {status:response.status,body});
@@ -650,11 +1029,22 @@
         email: coerceString(document.getElementById("email").value),
         phone: coerceString(document.getElementById("phone").value),
         priority: Number(document.getElementById("priority").value) || 1,
-        services: normalizeServices(document.getElementById("services").value),
-        bio: coerceString(document.getElementById("bio").value),
+
+
         photoUrl: coerceString(document.getElementById("photoUrl").value),
         availability: availabilityStateToPayload()
       };
+
+
+      const combinedServices=[...customServiceCarryover];
+      Array.from(serviceSelection).forEach(id=>{
+        if(!combinedServices.includes(id)){
+          combinedServices.push(id);
+        }
+      });
+      payload.services=combinedServices;
+      if(!payload.photoUrl) delete payload.photoUrl;
+
 
       const derivedName=[payload.first_name,payload.last_name].filter(Boolean).join(" ");
       if(derivedName){
@@ -662,12 +1052,7 @@
         payload.provider_name=derivedName;
       }
 
-      if(currentMode === "add"){
-        const requestedId=coerceString(document.getElementById("provider_id").value);
-        if(requestedId){
-          payload.provider_id=requestedId;
-        }
-      }
+
 
       let url=`${API_BASE}/providers`;
       let method="POST";
