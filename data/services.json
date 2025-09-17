@@ -1,44 +1,77 @@
 [
   {
-    "id": "SERVICE#adhd",
-    "name": "ADHD Medication Management",
+    "id": "svc_rapid_care_virtual",
+    "name": "Rapid Care Visit - Virtual",
+    "aliases": ["rapid", "rapid-care", "urgent"],
+    "description": "Same day video visit for common concerns such as cough, sore throat, strains, rashes, uncomplicated urinary symptoms, or other short-lived issues. Receive quick clinical guidance and a focused treatment plan for recovery. This visit does not include ADHD management. For chest pain or trouble breathing, call 911.",
     "price": {
-      "amount": 18000,
+      "amount": 9900,
       "currency": "usd"
     },
-    "aliases": ["adhd", "adhd-management"],
-    "description": "Comprehensive 60-minute evaluation and ongoing ADHD management.",
-    "duration_min": 60,
-    "buffer_before_min": 10,
-    "buffer_after_min": 10,
-    "cancellation_policy": "Cancel or reschedule at least 24 hours before your visit to avoid a fee."
-  },
-  {
-    "id": "SERVICE#rapid",
-    "name": "Rapid Care Visit",
-    "price": {
-      "amount": 9000,
-      "currency": "usd"
-    },
-    "aliases": ["rapid", "rapid-care", "same-day"],
-    "description": "Quick 30-minute visit for acute issues that need fast attention.",
     "duration_min": 30,
     "buffer_before_min": 5,
     "buffer_after_min": 5,
-    "cancellation_policy": "Rapid care visits can be cancelled or moved up to 12 hours before the start time."
+    "cancellation_policy": "Rapid care visits can be rescheduled or canceled up to 12 hours in advance without penalty.",
+    "states": ["MN", "WI", "IA"]
   },
   {
-    "id": "SERVICE#followup",
-    "name": "Follow-Up Consultation",
+    "id": "svc_general_medical_virtual",
+    "name": "General Medical Visit - Virtual",
+    "aliases": ["general", "primary-care", "virtual-general"],
+    "description": "Comprehensive consultation with history, assessment, and a personalized care plan. Common topics include preventive care, chronic condition check-ins, and new concerns that benefit from a detailed exam history and follow-up guidance.",
     "price": {
-      "amount": 6500,
+      "amount": 14900,
       "currency": "usd"
     },
-    "aliases": ["followup", "follow-up", "check-in"],
-    "description": "Focused 20-minute follow-up to review treatment progress.",
-    "duration_min": 20,
+    "duration_min": 45,
+    "buffer_before_min": 10,
+    "buffer_after_min": 10,
+    "cancellation_policy": "Please provide 24 hours notice to cancel or reschedule this visit.",
+    "states": ["MN", "WI", "ND"]
+  },
+  {
+    "id": "svc_adhd_visit_virtual",
+    "name": "ADHD Visit - Virtual",
+    "aliases": ["adhd", "adhd-evaluation", "adhd-virtual"],
+    "description": "Diagnostic evaluation using DSM-5 criteria with an individualized treatment plan and behavioral coaching guidance. Designed for adults seeking evaluation or follow-up adjustments for attention deficit hyperactivity disorder.",
+    "price": {
+      "amount": 19900,
+      "currency": "usd"
+    },
+    "duration_min": 60,
+    "buffer_before_min": 10,
+    "buffer_after_min": 10,
+    "cancellation_policy": "ADHD evaluations may be moved or canceled with 24 hours notice.",
+    "states": ["MN", "WI", "SD"]
+  },
+  {
+    "id": "svc_adhd_med_refill_virtual",
+    "name": "ADHD Medication Refill - Virtual",
+    "aliases": ["adhd-refill", "med-refill"],
+    "description": "Brief follow up for patients already stabilized on stimulant therapy. We review current symptoms, medication response, and confirm safety before renewing medication when clinically appropriate.",
+    "price": {
+      "amount": 10900,
+      "currency": "usd"
+    },
+    "duration_min": 25,
     "buffer_before_min": 5,
     "buffer_after_min": 5,
-    "cancellation_policy": "Follow-up visits require 12 hours notice to cancel or reschedule without penalty."
+    "cancellation_policy": "Medication management visits require 12 hours notice for changes.",
+    "states": ["MN", "WI"]
+  },
+  {
+    "id": "svc_weight_loss_virtual",
+    "name": "Weight Loss Visit - Virtual",
+    "aliases": ["weight-loss", "obesity-medicine"],
+    "description": "Personalized weight management consultation that reviews health history, medications, and current lifestyle goals. Leave with a clear plan that fits your lifestyle and preferences, including medication when clinically appropriate.",
+    "price": {
+      "amount": 18900,
+      "currency": "usd"
+    },
+    "duration_min": 50,
+    "buffer_before_min": 10,
+    "buffer_after_min": 10,
+    "cancellation_policy": "Weight loss visits can be rescheduled up to 24 hours beforehand.",
+    "states": ["MN", "WI", "IA", "ND"]
   }
 ]
