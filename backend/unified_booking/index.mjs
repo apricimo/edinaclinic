@@ -466,7 +466,7 @@ async function listAvailability(query) {
   const startDate = start ? new Date(start) : null;
   const endDate = end ? new Date(end) : null;
 
-  const availabilities = (await table.queryByPrefix("AVAIL#"))
+  const availabilities = (await table.queryByPrefix("AVAILS#"))
     .filter((item) => item.sk === "v0")
     .filter((item) => {
       if (serviceId && item.service_id !== serviceId) return false;
