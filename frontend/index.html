@@ -1,36 +1,662 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Edina Clinic • Split View</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <style>
-    html,body{height:100%;margin:0}
-    .bar{display:flex;gap:8px;align-items:center;padding:10px;background:#101418;color:#fff}
-    .bar button{padding:8px 12px;border:0;border-radius:6px;cursor:pointer}
-    .wrap{display:grid;grid-template-columns:1fr 1fr;height:calc(100% - 50px)}
-    iframe{width:100%;height:100%;border:0;background:#fff}
-    .left{border-right:1px solid #e6e6e6}
-  </style>
-</head>
-<body>
-  <div class="bar">
-    <div>Split View: Providers and Booking</div>
-    <button onclick="document.getElementById('left').contentWindow.location.reload()">Reload left</button>
-    <button onclick="document.getElementById('right').contentWindow.location.reload()">Reload right</button>
-    <button onclick="swap()">Swap</button>
-  </div>
-  <div class="wrap" id="wrap">
-    <iframe id="left" class="left"  src="./providers.html" title="Providers"></iframe>
-    <iframe id="right"             src="./booking.html"   title="Booking"></iframe>
-  </div>
-  <script>
-    function swap(){
-      const left = document.getElementById("left");
-      const right = document.getElementById("right");
-      const lsrc = left.src; left.src = right.src; right.src = lsrc;
-    }
-  </script>
-</body>
-</html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Telehealth Control Center</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        --accent: #1c64f2;
+        --accent-soft: rgba(28, 100, 242, 0.12);
+        --border: #d9dee7;
+        --bg-muted: #f7f9fc;
+        --text-muted: #4d5761;
+        --danger: #d52d3a;
+        --success: #0f9d58;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #fff;
+        color: #0b1320;
+      }
+      header {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+      nav.tabs {
+        display: flex;
+        gap: 8px;
+      }
+      nav.tabs button {
+        border: 1px solid var(--border);
+        background: #fff;
+        color: #0b1320;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+      }
+      nav.tabs button.active {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+      }
+      main {
+        padding: 24px;
+        display: grid;
+        gap: 24px;
+      }
+      section.tab-panel {
+        display: none;
+      }
+      section.tab-panel.active {
+        display: block;
+      }
+      h2 {
+        margin-top: 0;
+        font-size: 1.2rem;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+      }
+      form {
+        display: grid;
+        gap: 16px;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+      }
+      label span.title {
+        font-weight: 600;
+        color: #0b1320;
+      }
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"],
+      input[type="number"],
+      input[type="date"],
+      input[type="time"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        background: #fff;
+        color: inherit;
+      }
+      textarea { resize: vertical; min-height: 80px; }
+      input[type="checkbox"], input[type="radio"] {
+        accent-color: var(--accent);
+      }
+      button.primary {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+      button.danger {
+        background: var(--danger);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 8px 14px;
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.92rem;
+      }
+      th {
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+      tr:hover {
+        background: var(--bg-muted);
+      }
+      .muted {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+      .stack {
+        display: grid;
+        gap: 16px;
+      }
+      .inline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        border-radius: 999px;
+        padding: 6px 12px;
+        background: var(--bg-muted);
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+      .chip.active {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .error-text {
+        color: var(--danger);
+        font-size: 0.8rem;
+      }
+      .toast {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        background: #0b1320;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 8px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        transform: translateY(-8px);
+        z-index: 50;
+      }
+      .toast.show {
+        opacity: 0.96;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      .grid-cols-2 {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .list {
+        display: grid;
+        gap: 12px;
+      }
+      .availability-list {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .availability-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .availability-list li:last-child {
+        border-bottom: none;
+      }
+      .badge {
+        background: var(--bg-muted);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.8rem;
+      }
+      .side-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: min(420px, 100%);
+        height: 100%;
+        background: #fff;
+        border-left: 1px solid var(--border);
+        box-shadow: -12px 0 24px rgba(15, 23, 42, 0.08);
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+        z-index: 40;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      .side-panel.open {
+        transform: translateX(0);
+      }
+      .side-panel header {
+        border: none;
+      }
+      .side-panel .body {
+        padding: 24px;
+        overflow-y: auto;
+        display: grid;
+        gap: 12px;
+      }
+      .pill-toggle {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .pill-toggle label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .pill-toggle input:checked + span {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      @media (max-width: 900px) {
+        main {
+          padding: 16px;
+        }
+        header {
+          padding: 12px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Telehealth Control Center</h1>
+      <nav class="tabs" role="tablist">
+        <button type="button" class="active" data-tab="booking">Booking</button>
+        <button type="button" data-tab="admin">Admin</button>
+        <button type="button" data-tab="providers">Providers</button>
+      </nav>
+    </header>
+    <main>
+      <section id="tab-booking" class="tab-panel active" role="tabpanel">
+        <div class="stack">
+          <div class="card">
+            <h2>Book Your Telehealth Appointment</h2>
+            <div class="grid-cols-2">
+              <div class="field">
+                <label><span class="title">Patient State</span>
+                  <select id="booking-state"></select>
+                </label>
+                <div class="error-text" data-error="booking-state"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">Choose a Service</span></label>
+                <div id="booking-services" class="chips"></div>
+                <div class="error-text" data-error="booking-service"></div>
+              </div>
+            </div>
+            <div class="stack" style="margin-top:20px;">
+              <div class="field">
+                <label><span class="title">Available Times (next 7 days)</span></label>
+                <div id="booking-times" class="list"></div>
+                <div class="error-text" data-error="booking-time"></div>
+              </div>
+              <form id="booking-form" class="stack">
+                <div class="grid-cols-2">
+                  <div class="field">
+                    <label><span class="title">Preferred Provider</span>
+                      <select id="booking-provider"></select>
+                    </label>
+                    <div class="muted">Defaulted to the highest priority provider for the chosen slot.</div>
+                    <div class="error-text" data-error="booking-provider"></div>
+                  </div>
+                </div>
+                <div class="grid-cols-2">
+                  <div class="field">
+                    <label><span class="title">Patient Full Name</span>
+                      <input type="text" id="patient-name" required autocomplete="name">
+                    </label>
+                    <div class="error-text" data-error="patient_name"></div>
+                  </div>
+                  <div class="field">
+                    <label><span class="title">Patient Email</span>
+                      <input type="email" id="patient-email" required autocomplete="email">
+                    </label>
+                    <div class="error-text" data-error="patient_email"></div>
+                  </div>
+                </div>
+                <div class="grid-cols-2">
+                  <div class="field">
+                    <label><span class="title">Patient Mobile Number</span>
+                      <input type="tel" id="patient-phone" required autocomplete="tel">
+                    </label>
+                    <div class="error-text" data-error="patient_phone"></div>
+                  </div>
+                  <div class="field">
+                    <label class="inline" style="gap:8px;align-items:flex-start;">
+                      <input type="checkbox" id="sms-consent" required>
+                      <span>Consent to receive appointment updates by text message</span>
+                    </label>
+                    <div class="error-text" data-error="sms-consent"></div>
+                  </div>
+                </div>
+                <button type="submit" class="primary">Book appointment</button>
+              </form>
+              <div id="booking-confirmation" class="card" style="background:var(--bg-muted);display:none;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      <section id="tab-admin" class="tab-panel" role="tabpanel">
+        <div class="stack">
+          <div class="card">
+            <h2>Create Service</h2>
+            <form id="service-form" class="stack">
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Service name</span>
+                    <input type="text" id="service-name" required>
+                  </label>
+                  <div class="error-text" data-error="service-name"></div>
+                </div>
+                <div class="field">
+                  <label><span class="title">Price (USD)</span>
+                    <input type="number" id="service-price" min="0" step="0.01" required>
+                  </label>
+                  <div class="error-text" data-error="service-price"></div>
+                </div>
+              </div>
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Duration (minutes)</span>
+                    <input type="number" id="service-duration" min="5" step="5" required>
+                  </label>
+                  <div class="error-text" data-error="service-duration"></div>
+                </div>
+                <div class="field">
+                  <label><span class="title">States offered</span></label>
+                  <div id="service-states" class="pill-toggle"></div>
+                  <div class="error-text" data-error="service-states"></div>
+                </div>
+              </div>
+              <label class="inline">
+                <input type="checkbox" id="service-active" checked>
+                <span>Active</span>
+              </label>
+              <div class="inline">
+                <button type="submit" class="primary">Create Service</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Services</h2>
+            <div class="error-text" data-error="service-table"></div>
+            <div class="list" id="services-table"></div>
+          </div>
+
+          <div class="card">
+            <h2>Create Provider</h2>
+            <form id="admin-provider-form" class="stack">
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Full name</span>
+                    <input type="text" id="admin-provider-name" required>
+                  </label>
+                  <div class="error-text" data-error="admin-provider-name"></div>
+                </div>
+                <div class="field">
+                  <label><span class="title">Email</span>
+                    <input type="email" id="admin-provider-email" required>
+                  </label>
+                  <div class="error-text" data-error="admin-provider-email"></div>
+                </div>
+              </div>
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Phone</span>
+                    <input type="tel" id="admin-provider-phone" required>
+                  </label>
+                  <div class="error-text" data-error="admin-provider-phone"></div>
+                </div>
+                <div class="field">
+                  <label><span class="title">Priority</span>
+                    <input type="number" id="admin-provider-priority" min="1" step="1">
+                  </label>
+                  <div class="muted">Lower numbers surface first for patients.</div>
+                </div>
+              </div>
+              <div class="field">
+                <label><span class="title">States</span></label>
+                <div id="admin-provider-states" class="pill-toggle"></div>
+                <div class="error-text" data-error="admin-provider-states"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">Services offered</span></label>
+                <div id="admin-provider-services" class="pill-toggle"></div>
+                <div class="error-text" data-error="admin-provider-services"></div>
+              </div>
+              <label class="inline">
+                <input type="checkbox" id="admin-provider-active" checked>
+                <span>Active</span>
+              </label>
+              <div class="inline">
+                <button type="submit" class="primary">Create Provider</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Provider directory</h2>
+            <div class="list" id="admin-providers-list"></div>
+          </div>
+
+          <div class="card">
+            <h2>Appointments</h2>
+            <div class="grid-cols-2">
+              <div class="field">
+                <label><span class="title">Service filter</span>
+                  <select id="appointments-filter-service"></select>
+                </label>
+              </div>
+              <div class="field">
+                <label><span class="title">Provider filter</span>
+                  <select id="appointments-filter-provider"></select>
+                </label>
+              </div>
+              <div class="field">
+                <label><span class="title">Status</span>
+                  <select id="appointments-filter-status">
+                    <option value="">All</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="completed">Completed</option>
+                    <option value="canceled">Canceled</option>
+                    <option value="refunded">Refunded</option>
+                  </select>
+                </label>
+              </div>
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Start date</span>
+                    <input type="date" id="appointments-filter-start">
+                  </label>
+                </div>
+                <div class="field">
+                  <label><span class="title">End date</span>
+                    <input type="date" id="appointments-filter-end">
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="stack" style="margin-top:16px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Service</th>
+                    <th>Provider</th>
+                    <th>Start</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="appointments-table"></tbody>
+              </table>
+              <div class="muted" id="appointments-empty" style="display:none;">No appointments match the filters.</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Sales overview</h2>
+            <div class="grid-cols-2" id="sales-summary"></div>
+            <div class="list" id="sales-daily"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-providers" class="tab-panel" role="tabpanel">
+        <div class="stack">
+          <div class="card">
+            <h2>Provider roster</h2>
+            <div class="field">
+              <label><span class="title">Select provider</span>
+                <select id="provider-select"></select>
+              </label>
+            </div>
+            <form id="provider-form" class="stack" style="margin-top:16px;">
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Full name</span>
+                    <input type="text" id="provider-full-name" required>
+                  </label>
+                  <div class="error-text" data-error="provider-full_name"></div>
+                </div>
+                <div class="field">
+                  <label><span class="title">Email</span>
+                    <input type="email" id="provider-email" required>
+                  </label>
+                  <div class="error-text" data-error="provider-email"></div>
+                </div>
+              </div>
+              <div class="grid-cols-2">
+                <div class="field">
+                  <label><span class="title">Phone</span>
+                    <input type="tel" id="provider-phone" required>
+                  </label>
+                  <div class="error-text" data-error="provider-phone"></div>
+                </div>
+                <div class="field">
+                  <label><span class="title">Priority</span>
+                    <input type="number" id="provider-priority" min="1" step="1">
+                  </label>
+                  <div class="muted">Lower numbers surface first in booking.</div>
+                </div>
+              </div>
+              <div class="field">
+                <label><span class="title">States</span></label>
+                <div id="provider-states" class="pill-toggle"></div>
+                <div class="error-text" data-error="provider-states"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">Services offered</span></label>
+                <div id="provider-services" class="pill-toggle"></div>
+                <div class="error-text" data-error="provider-services"></div>
+              </div>
+              <label class="inline">
+                <input type="checkbox" id="provider-active">
+                <span>Active</span>
+              </label>
+              <div class="inline">
+                <button type="submit" class="primary">Save provider profile</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2>Availability</h2>
+            <form id="availability-form" class="grid-cols-2">
+              <div class="field">
+                <label><span class="title">Service</span>
+                  <select id="availability-service"></select>
+                </label>
+                <div class="error-text" data-error="availability-service"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">State</span>
+                  <select id="availability-state"></select>
+                </label>
+                <div class="error-text" data-error="availability-state"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">Date</span>
+                  <input type="date" id="availability-date" required>
+                </label>
+                <div class="error-text" data-error="availability-date"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">Start time (local)</span>
+                  <input type="time" id="availability-start" required>
+                </label>
+                <div class="error-text" data-error="availability-start"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">End time (local)</span>
+                  <input type="time" id="availability-end" required>
+                </label>
+                <div class="error-text" data-error="availability-end"></div>
+              </div>
+              <div class="field">
+                <label><span class="title">Capacity</span>
+                  <input type="number" id="availability-capacity" min="1" step="1" value="1">
+                </label>
+                <div class="error-text" data-error="availability-capacity"></div>
+              </div>
+              <div class="inline" style="grid-column: span 2;">
+                <button type="submit" class="primary">Add availability</button>
+              </div>
+            </form>
+            <div class="list" style="margin-top:20px;">
+              <h3 style="margin:0;font-size:1rem;">Upcoming slots</h3>
+              <ul class="availability-list" id="availability-list"></ul>
+              <div class="muted" id="availability-empty" style="display:none;">No future availability configured.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="side-panel" id="appointment-panel" aria-hidden="true">
+      <header>
+        <div class="inline" style="width:100%;justify-content:space-between;">
+          <h2 style="margin:0;font-size:1.1rem;">Appointment details</h2>
+          <button type="button" id="close-panel" class="primary" style="background:#e0e7ff;color:#1c64f2;">Close</button>
+        </div>
+      </header>
+      <div class="body" id="appointment-panel-body"></div>
+    </aside>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
