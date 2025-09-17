@@ -1,0 +1,14 @@
+{
+  "SERVICE#adhd": {
+    "reminder_one_day": true,
+    "reminder_one_hour": true
+  },
+  "SERVICE#rapid": {
+    "reminder_one_day": true,
+    "reminder_one_hour": true
+  },
+  "SERVICE#followup": {
+    "reminder_one_day": true,
+    "reminder_one_hour": true
+  }
+}

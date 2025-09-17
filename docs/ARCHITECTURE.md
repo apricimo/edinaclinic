@@ -14,6 +14,20 @@
   - `PUT /providers/{id}` – updates allowed provider fields.
   - `DELETE /providers/{id}` – removes the provider.
 
+## Appointments API
+- `backend/appointments_api/index.mjs` orchestrates appointment creation, updates, cancellations, reschedules, refunds, and notification logging.
+- Persists appointment data in `data/appointments.json` to keep the specification runnable in local environments without DynamoDB.
+- Exposes routes for
+  - `GET /appointments` with filter support (date range, service, provider, payment status, appointment status, search).
+  - `POST /appointments` to create an appointment, compute Zoom placeholders, seed confirmation notifications, and schedule reminders.
+  - `POST /appointments/{id}/cancel|reschedule|refund` to drive dashboard actions.
+  - `POST /appointments/{id}/notifications` and `/notifications/resend` to log manual outreach or resend confirmations idempotently.
+  - `GET /appointments/summary` for sales metrics and `/services/preferences` to toggle reminder defaults per service.
+
+## Frontend Dashboards
+- `frontend/booking.html` now runs the full booking flow: service selection, date/time picking based on provider availability, patient details (email, mobile, SMS consent), and confirmation with resend + calendar support. It calls the appointments API to create records and surfaces the Zoom join link, cancellation policy, and reminder expectations.
+- `frontend/admin.html` provides the Appointments &amp; Sales dashboard featuring filters, real-time sales metrics, a daily chart, reminder preference toggles, appointment detail view, and actions for cancel/reschedule/refund/resend/manual messaging.
+
 ## Shared Library (`backend/lib`)
 - `http.js` – common API Gateway helpers (`send`, `parseJsonBody`) with shared CORS headers.
 - `ddb.js` – lazily initialises an AWS SDK v3 `DynamoDBDocumentClient` and exposes tiny helpers for common operations.

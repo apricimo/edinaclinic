@@ -9,6 +9,7 @@ const TABLE_NAME = process.env.PROVIDERS_TABLE || "providers";
 const ROUTE_ROOTS = ["ping", "providers"];
 const ALLOWED_FIELDS = [
   "name",
+  "provider_name",
   "first_name",
   "last_name",
   "priority",
@@ -132,6 +133,7 @@ async function createProvider(event) {
     sk: "v0",
     id,
     name,
+    provider_name: name,
     provider_id: id,
     first_name: firstName,
     last_name: lastName,
@@ -174,9 +176,27 @@ async function updateProvider(id, event) {
     return send(400, { error: "Invalid JSON body" });
   }
 
+  let existing;
+  try {
+    const current = await getItem({
+      TableName: TABLE_NAME,
+      Key: { pk: providerPk(providerId), sk: "v0" }
+    });
+    existing = current.Item;
+  } catch (error) {
+    console.error("providers_api: load existing failed", error);
+    return send(500, { error: "Failed to update provider" });
+  }
+
+  if (!existing) {
+    return send(404, { error: "Provider not found" });
+  }
+
   const updates = {};
+  const touched = {};
   for (const key of ALLOWED_FIELDS) {
     if (payload[key] !== undefined) {
+      touched[key] = true;
       if (key === "priority") {
         const value = toNumber(payload[key]);
         if (value !== undefined) updates[key] = value;
@@ -190,6 +210,40 @@ async function updateProvider(id, event) {
         const value = optionalString(payload[key]);
         if (value !== undefined) updates[key] = value;
       }
+    }
+  }
+
+  const firstTouched = Boolean(touched.first_name);
+  const lastTouched = Boolean(touched.last_name);
+  const nameTouched = Boolean(touched.name);
+  const providerNameTouched = Boolean(touched.provider_name);
+
+  if (nameTouched || providerNameTouched || firstTouched || lastTouched) {
+    const existingFirst = optionalString(existing.first_name || existing.firstName);
+    const existingLast = optionalString(existing.last_name || existing.lastName);
+    const existingDisplay =
+      optionalString(existing.name) || optionalString(existing.provider_name);
+
+    const nextFirst = updates.first_name !== undefined ? updates.first_name : existingFirst;
+    const nextLast = updates.last_name !== undefined ? updates.last_name : existingLast;
+
+    let nextName = updates.name;
+    if (!nextName && providerNameTouched && updates.provider_name) {
+      nextName = updates.provider_name;
+    }
+    if (!nextName) {
+      const parts = [nextFirst, nextLast].filter(Boolean);
+      if (parts.length) {
+        nextName = parts.join(" ");
+      }
+    }
+    if (!nextName) {
+      nextName = existingDisplay;
+    }
+
+    if (nextName) {
+      updates.name = nextName;
+      updates.provider_name = nextName;
     }
   }
 
