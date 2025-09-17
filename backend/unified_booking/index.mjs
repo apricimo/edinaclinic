@@ -7,7 +7,6 @@ const { parseJsonBody, send: sendResponse } = http;
 /* ------------------------------------------------
    Constants
 ------------------------------------------------ */
-let bookingModulePromise;
 let providersModulePromise;
 
 const KNOWN_ROOTS = new Set(["ping", "checkout", "services", "providers", "availability", "appointments", "stats"]);
@@ -338,6 +337,11 @@ async function createProvider(payload) {
     updated_at: now
   };
 
+  await table.updateItems(async (items) => {
+    items.push(item);
+    return { items, result: null };
+  });
+
   return { ok: true, data: formatProvider(item) };
 }
 
@@ -495,12 +499,6 @@ async function createAvailability(payload) {
     fields.capacity = "Capacity must be at least 1";
   }
 
-  if (normalizedPath.startsWith("/checkout") || normalizedPath.startsWith("/services")) {
-    const bookingHandler = await loadBookingHandler();
-    const routedEvent = { ...event, rawPath: normalizedPath, path: normalizedPath };
-    return bookingHandler(routedEvent);
-  }
-
   if (Object.keys(fields).length) {
     return { ok: false, status: 400, body: { ok: false, error: "Validation failed", fields } };
   }
@@ -532,10 +530,6 @@ async function createAvailability(payload) {
     return invalidField("state_code", "Provider is not enabled for this state");
   }
 
-  const module = await bookingModulePromise;
-  if (typeof module.handler !== "function") {
-    throw new Error("booking_api/index.mjs must export handler");
-  }
   const services = await loadServiceMap();
   const service = services.get(serviceId);
   if (!service) return invalidField("service_id", "Service not found");
