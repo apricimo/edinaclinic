@@ -3,8 +3,16 @@ frontend:
   phases:
     build:
       commands:
+<<<<<<< HEAD
         - echo "Static site - no build needed"
   artifacts:
     baseDirectory: frontend
     files:
       - '**/*'
+=======
+        - echo "Build completed"
+  artifacts:
+    baseDirectory: .
+    files:
+      - index.html
+>>>>>>> b3b97c9f08c7b8fcf38dadfbbf88235002baf2a6
