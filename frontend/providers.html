@@ -21,6 +21,7 @@
     .provider-avatar{width:64px;height:64px;border-radius:50%;background:#dee2e6;color:#495057;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;text-transform:uppercase}
     .provider-services{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
     .provider-tag{background:#e9ecef;color:#495057;padding:4px 10px;border-radius:12px;font-size:12px}
+
     .service-options{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
     .service-chip{border:1px solid #ced4da;border-radius:20px;padding:6px 12px;background:#fff;color:#495057;cursor:pointer;font-size:13px;transition:all .2s}
     .service-chip:hover{border-color:#007bff}
@@ -31,11 +32,14 @@
     .service-loading{font-size:13px;color:#6c757d;padding:8px 0}
     .service-helper-text{font-size:12px;color:#6c757d;margin-top:6px}
     .service-divider{flex-basis:100%;font-size:12px;color:#6c757d;margin-top:6px}
+
     .availability-schedule{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin:15px 0}
     .day-slot{padding:10px;border-radius:5px;font-size:12px;display:flex;flex-direction:column;gap:6px;text-align:center}
     .day-slot div{margin:0 auto}
     .day-unavailable{background:#f8f9fa;border:1px solid #dee2e6;color:#6c757d}
     .day-available{background:#e8f5e9;border:1px solid #c3e6cb;color:#1e7e34}
+
+
     .provider-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
     .edit-btn{background:#007bff;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
     .delete-btn{background:#dc3545;color:#fff;border:0;padding:8px 16px;border-radius:4px;cursor:pointer}
@@ -43,9 +47,11 @@
     .debug-info{background:#f8f9fa;border:1px solid #dee2e6;padding:10px;margin:10px 0;border-radius:4px;font-family:monospace;font-size:12px;max-height:300px;overflow-y:auto}
     .form-error{margin-top:10px;color:#dc3545;font-size:14px;display:none}
     .availability-editor{display:flex;flex-direction:column;gap:10px}
+
     .availability-row{display:grid;grid-template-columns:140px 1fr 1fr auto;gap:10px;align-items:center}
     .availability-row select{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;background:#fff}
     .time-select{width:100%}
+
     .availability-row button{padding:8px 12px;border:0;border-radius:4px;background:#f8d7da;color:#721c24;cursor:pointer}
     .availability-empty{padding:10px;border:1px dashed #ced4da;border-radius:4px;color:#6c757d;font-size:13px;text-align:center}
     .availability-add-btn{padding:6px 12px;background:#17a2b8;color:#fff;border:0;border-radius:4px;cursor:pointer;font-size:13px}
@@ -97,6 +103,11 @@
             <input id="last_name" name="last_name" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
           </div>
         </div>
+        <div style="margin-top:15px">
+          <label for="provider_id"><b>Provider ID</b> <span style="font-weight:400;color:#6c757d;font-size:12px">(optional)</span></label>
+          <input id="provider_id" name="provider_id" placeholder="e.g. dr-smith" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
+          <div style="font-size:12px;color:#6c757d;margin-top:4px">Used in booking URLs and calendars. Letters, numbers and dashes only. Cannot be changed after creation.</div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px">
           <div>
             <label for="email"><b>Email</b></label>
@@ -112,9 +123,11 @@
           <input id="priority" name="priority" type="number" min="1" value="1" required style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px"/>
         </div>
         <div style="margin-top:15px">
+
           <label><b>Services</b></label>
           <div id="service-options" class="service-options"></div>
           <div class="service-helper-text">Click to select the services this provider offers. Options match the booking page.</div>
+
         </div>
         <div style="margin-top:15px">
           <label for="photoUrl"><b>Photo URL</b></label>
@@ -149,12 +162,15 @@
       });
       return map;
     })();
+
     const DEFAULT_START_TIME = "09:00";
     const DEFAULT_END_TIME = "17:00";
+
     let currentMode = "add";
     let currentProviderId = null;
     let cacheById = new Map();
     let availabilityState = [];
+
     let serviceCatalog = [];
     let serviceTokenMap = new Map();
     let serviceLabelById = new Map();
@@ -167,6 +183,8 @@
       const map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"};
       return String(value ?? "").replace(/[&<>"']/g,c=>map[c]||c);
     }
+
+
 
     function debugLog(msg,data){
       const el=document.getElementById("debug-info");
@@ -193,6 +211,7 @@
       return String(value).trim();
     }
 
+
     function extractServiceValues(value){
       if(Array.isArray(value)){
         const result=[];
@@ -208,15 +227,19 @@
           }
         });
         return result;
+
       }
       if(typeof value === "string"){
         return value
           .split(/[\n,]+/)
+
           .map(item=>item.trim())
+
           .filter(Boolean);
       }
       return [];
     }
+
 
     function normalizeServiceRecord(raw){
       if(!raw) return null;
@@ -423,6 +446,7 @@
         });
       }
       return labels;
+
     }
 
     function parseDayValue(value){
@@ -474,6 +498,7 @@
       return "";
     }
 
+
     function createTimeOptions(){
       const options=[];
       for(let hour=0;hour<24;hour+=1){
@@ -497,6 +522,7 @@
       return `<select data-field="${field}" class="time-select">${options.join("")}</select>`;
     }
 
+
     function normalizeAvailabilityList(raw){
       const source=Array.isArray(raw)?raw:[];
       const normalized=[];
@@ -519,13 +545,17 @@
       const normalized=normalizeAvailabilityList(slots);
       availabilityState=normalized.map(slot=>({ day:slot.day, start:slot.start, end:slot.end, notes:slot.notes || "" }));
       if(!availabilityState.length){
+
         availabilityState.push({ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" });
+
       }
       renderAvailabilityEditor();
     }
 
     function addAvailabilitySlot(slot){
+
       const defaults={ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" };
+
       const incoming=slot || {};
       const day=parseDayValue(incoming.day);
       availabilityState.push({
@@ -549,11 +579,14 @@
           <select data-field="day">
             ${fullDayNames.map((label,idx)=>`<option value="${idx}" ${Number(slot.day)===idx?"selected":""}>${label}</option>`).join("")}
           </select>
+
           ${buildTimeSelect("start",slot.start)}
           ${buildTimeSelect("end",slot.end)}
+
           <button type="button" data-action="remove">Remove</button>
         </div>
       `).join("");
+
 
       container.querySelectorAll("select[data-field]").forEach(select=>{
         select.addEventListener("change",event=>{
@@ -567,6 +600,7 @@
           if(field==="start" || field==="end"){
             availabilityState[index][field]=event.target.value;
           }
+
         });
       });
 
@@ -577,7 +611,9 @@
           if(!Number.isFinite(index)) return;
           availabilityState.splice(index,1);
           if(!availabilityState.length){
+
             availabilityState.push({ day:1, start:DEFAULT_START_TIME, end:DEFAULT_END_TIME, notes:"" });
+
           }
           renderAvailabilityEditor();
         });
@@ -650,7 +686,9 @@
           .sort((a,b)=>a.start.localeCompare(b.start))
           .map(slot=>{
             const timeLabel=`${escapeHtml(formatTime(slot.start))} - ${escapeHtml(formatTime(slot.end))}`;
+
             return `<div>${timeLabel}</div>`;
+
           })
           .join("");
         return `<div class="day-slot day-available"><div><b>${label}</b></div><div>${slotHtml}</div></div>`;
@@ -676,6 +714,7 @@
         box.querySelector("#cm-ok").onclick=()=>done(true);
       });
     }
+
 
     document.addEventListener("DOMContentLoaded",async()=>{
       setAvailabilityState([]);
@@ -717,6 +756,7 @@
       }
     }
 
+
     function normalizeProvider(raw){
       if(!raw) return null;
       const providerId = raw.provider_id || raw.id || raw.pk || "";
@@ -725,9 +765,11 @@
       const lastName = coerceString(raw.last_name || raw.lastName);
       const providedName = coerceString(raw.name || raw.provider_name || raw.providerName);
       const providerName = providedName || [firstName,lastName].filter(Boolean).join(" ");
+
       const serviceValues = extractServiceValues(raw.services || raw.specialties || raw.service_names || raw.serviceIds || []);
       const serviceSplit = splitServiceValues(serviceValues);
       const servicesForDisplay = serviceSplit.canonicalIds.length ? serviceSplit.canonicalIds : serviceSplit.rawValues;
+
       return {
         provider_id: providerId,
         id: providerId,
@@ -737,10 +779,12 @@
         email: coerceString(raw.email),
         phone: coerceString(raw.phone),
         priority: typeof raw.priority === "number" ? raw.priority : Number(raw.priority) || 1,
+
         services: servicesForDisplay,
         service_ids: serviceSplit.canonicalIds,
         custom_services: serviceSplit.customValues,
         services_raw: serviceSplit.rawValues,
+
         availability: normalizeAvailabilityList(raw.availability || raw.schedule || raw.slots || []),
         bio: coerceString(raw.bio || raw.biography || ""),
         photoUrl: coerceString(raw.photoUrl || raw.photo_url || raw.photo || "")
@@ -788,10 +832,12 @@
         const displayName=fallbackName || p.provider_name || "Provider";
         const rawName=displayName;
         const safeName=escapeHtml(displayName);
+
         const serviceLabels=buildProviderServiceLabels(p);
         const servicesHtml=serviceLabels.length
           ? `<div class="provider-services">${serviceLabels.map(label=>`<span class="provider-tag">${escapeHtml(label)}</span>`).join("")}</div>`
           : `<div class="provider-services"><span class="provider-tag">No services selected yet</span></div>`;
+
         const photoSection=p.photoUrl?`<img src="${escapeHtml(p.photoUrl)}" alt="${safeName}" class="provider-photo" loading="lazy"/>`:`<div class="provider-avatar">${escapeHtml(buildInitials(p))}</div>`;
         const scheduleHtml=buildScheduleHtml(p.availability || []);
         return `
@@ -810,10 +856,13 @@
             </div>
           </div>
           <div class="provider-info">
+            <p>🆔 ${escapeHtml(p.provider_id)}</p>
             <p>📧 ${escapeHtml(p.email||"undefined")}</p>
             <p>📞 ${escapeHtml(p.phone||"undefined")}</p>
           </div>
           ${servicesHtml}
+
+
           <div class="availability-schedule">
             ${scheduleHtml}
           </div>
@@ -833,8 +882,10 @@
       document.getElementById("email").value="";
       document.getElementById("phone").value="";
       document.getElementById("priority").value="1";
+
       document.getElementById("photoUrl").value="";
       resetServiceSelection();
+
       showFormError(null);
       setAvailabilityState([]);
       document.getElementById("provider-modal").style.display="flex";
@@ -872,8 +923,10 @@
         document.getElementById("email").value=provider.email||"";
         document.getElementById("phone").value=provider.phone||"";
         document.getElementById("priority").value=Number(provider.priority||1);
+
         document.getElementById("photoUrl").value=provider.photoUrl||"";
         applyProviderServices(provider);
+
         showFormError(null);
         setAvailabilityState(provider.availability||[]);
         document.getElementById("provider-modal").style.display="flex";
@@ -913,9 +966,12 @@
         email: coerceString(document.getElementById("email").value),
         phone: coerceString(document.getElementById("phone").value),
         priority: Number(document.getElementById("priority").value) || 1,
+
+
         photoUrl: coerceString(document.getElementById("photoUrl").value),
         availability: availabilityStateToPayload()
       };
+
 
       const combinedServices=[...customServiceCarryover];
       Array.from(serviceSelection).forEach(id=>{
@@ -926,11 +982,14 @@
       payload.services=combinedServices;
       if(!payload.photoUrl) delete payload.photoUrl;
 
+
       const derivedName=[payload.first_name,payload.last_name].filter(Boolean).join(" ");
       if(derivedName){
         payload.name=derivedName;
         payload.provider_name=derivedName;
       }
+
+
 
       let url=`${API_BASE}/providers`;
       let method="POST";
