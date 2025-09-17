@@ -1,0 +1,49 @@
+{
+    "Items": [
+        {
+            "ConnectionType": "INTERNET",
+            "IntegrationId": "7ytnjwr",
+            "IntegrationMethod": "POST",
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:079604065431:function:slots_get/invocations",
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+        },
+        {
+            "ConnectionType": "INTERNET",
+            "IntegrationId": "9r8wiwm",
+            "IntegrationMethod": "POST",
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": "arn:aws:lambda:us-east-1:079604065431:function:telehealth_notes",
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+        },
+        {
+            "ConnectionType": "INTERNET",
+            "IntegrationId": "dhdu7mk",
+            "IntegrationMethod": "POST",
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": "arn:aws:lambda:us-east-1:079604065431:function:telehealth_appointments_get",
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+        },
+        {
+            "ConnectionType": "INTERNET",
+            "IntegrationId": "g1rr97f",
+            "IntegrationMethod": "POST",
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:079604065431:function:appointments_create/invocations",
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+        },
+        {
+            "ConnectionType": "INTERNET",
+            "IntegrationId": "y4yvky2",
+            "IntegrationMethod": "POST",
+            "IntegrationType": "AWS_PROXY",
+            "IntegrationUri": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:079604065431:function:services_get/invocations",
+            "PayloadFormatVersion": "2.0",
+            "TimeoutInMillis": 30000
+        }
+    ]
+}

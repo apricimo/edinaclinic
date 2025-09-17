@@ -1,0 +1,44 @@
+[
+  {
+    "id": "SERVICE#adhd",
+    "name": "ADHD Medication Management",
+    "price": {
+      "amount": 18000,
+      "currency": "usd"
+    },
+    "aliases": ["adhd", "adhd-management"],
+    "description": "Comprehensive 60-minute evaluation and ongoing ADHD management.",
+    "duration_min": 60,
+    "buffer_before_min": 10,
+    "buffer_after_min": 10,
+    "cancellation_policy": "Cancel or reschedule at least 24 hours before your visit to avoid a fee."
+  },
+  {
+    "id": "SERVICE#rapid",
+    "name": "Rapid Care Visit",
+    "price": {
+      "amount": 9000,
+      "currency": "usd"
+    },
+    "aliases": ["rapid", "rapid-care", "same-day"],
+    "description": "Quick 30-minute visit for acute issues that need fast attention.",
+    "duration_min": 30,
+    "buffer_before_min": 5,
+    "buffer_after_min": 5,
+    "cancellation_policy": "Rapid care visits can be cancelled or moved up to 12 hours before the start time."
+  },
+  {
+    "id": "SERVICE#followup",
+    "name": "Follow-Up Consultation",
+    "price": {
+      "amount": 6500,
+      "currency": "usd"
+    },
+    "aliases": ["followup", "follow-up", "check-in"],
+    "description": "Focused 20-minute follow-up to review treatment progress.",
+    "duration_min": 20,
+    "buffer_before_min": 5,
+    "buffer_after_min": 5,
+    "cancellation_policy": "Follow-up visits require 12 hours notice to cancel or reschedule without penalty."
+  }
+]
