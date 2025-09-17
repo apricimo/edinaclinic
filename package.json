@@ -1,16 +1,11 @@
 {
-  "name": "edinaclinic",
-  "version": "0.1.0",
-  "private": true,
+  "name": "edina-clinic-telehealth",
+  "version": "1.0.0",
+  "description": "Telehealth platform for Edina Clinic",
   "scripts": {
-    "test": "vitest run"
+    "build": "echo 'Static build complete'",
+    "start": "python3 -m http.server 8000"
   },
-  "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.634.0",
-    "@aws-sdk/client-secrets-manager": "^3.634.0",
-    "@aws-sdk/lib-dynamodb": "^3.634.0"
-  },
-  "devDependencies": {
-    "vitest": "^1.5.0"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }

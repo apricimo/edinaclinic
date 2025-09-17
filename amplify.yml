@@ -1,0 +1,13 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "No preBuild commands"
+    build:
+      commands:
+        - echo "Static site - no build needed"
+  artifacts:
+    baseDirectory: .
+    files:
+      - '**/*'
