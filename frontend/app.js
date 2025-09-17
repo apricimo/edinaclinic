@@ -4,6 +4,33 @@ const STATE_OPTIONS = [
 ];
 
 const API_BASE = window.__API_BASE__ || "";
+const USE_STATIC_DATA = !API_BASE;
+const MOCK_STORAGE_KEYS = {
+  services: "edinaclinic:services",
+  providers: "edinaclinic:providers",
+  availability: "edinaclinic:availability",
+  appointments: "edinaclinic:appointments"
+};
+
+const mockState = {
+  services: [],
+  providers: [],
+  availability: [],
+  appointments: []
+};
+
+const mockDataPromise = USE_STATIC_DATA ? loadMockData() : Promise.resolve();
+const supportsStorage = (() => {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    const testKey = "edinaclinic:test";
+    window.localStorage.setItem(testKey, "1");
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch (err) {
+    return false;
+  }
+})();
 
 const state = {
   services: [],
@@ -1016,6 +1043,9 @@ function handleFormError(error, fieldMap) {
 }
 
 async function apiFetch(path, options = {}) {
+  if (USE_STATIC_DATA) {
+    return mockApiFetch(path, options);
+  }
   const method = options.method || "GET";
   const response = await fetch(`${API_BASE}${path}`, {
     method,
@@ -1040,6 +1070,584 @@ async function apiFetch(path, options = {}) {
     throw error;
   }
   return payload?.data ?? payload;
+}
+
+async function mockApiFetch(path, options = {}) {
+  await mockDataPromise;
+  const method = (options.method || "GET").toUpperCase();
+  const url = new URL(path, window.location.origin);
+  const pathname = url.pathname;
+  const params = url.searchParams;
+  const payload = options.body ? safeParseJSON(options.body) : null;
+
+  if (pathname === "/services") {
+    if (method === "GET") {
+      return clone(mockState.services);
+    }
+    if (method === "POST") {
+      const service = createService(payload || {});
+      mockState.services.push(service);
+      persistServices();
+      return clone(service);
+    }
+  }
+
+  if (pathname.startsWith("/services/")) {
+    const serviceId = decodeURIComponent(pathname.split("/")[2] || "");
+    const index = mockState.services.findIndex((service) => service.service_id === serviceId);
+    if (index === -1) throw mockNotFoundError("Service not found");
+    if (method === "PATCH") {
+      mockState.services[index] = {
+        ...mockState.services[index],
+        ...sanitizeServiceUpdate(payload || {})
+      };
+      persistServices();
+      return clone(mockState.services[index]);
+    }
+  }
+
+  if (pathname === "/providers") {
+    if (method === "GET") {
+      return clone(mockState.providers);
+    }
+    if (method === "POST") {
+      const provider = createProvider(payload || {});
+      mockState.providers.push(provider);
+      persistProviders();
+      return clone(provider);
+    }
+  }
+
+  if (pathname.startsWith("/providers/")) {
+    const providerId = decodeURIComponent(pathname.split("/")[2] || "");
+    const index = mockState.providers.findIndex((provider) => provider.provider_id === providerId);
+    if (index === -1) throw mockNotFoundError("Provider not found");
+    if (method === "PATCH") {
+      mockState.providers[index] = {
+        ...mockState.providers[index],
+        ...sanitizeProviderUpdate(payload || {})
+      };
+      persistProviders();
+      return clone(mockState.providers[index]);
+    }
+    if (method === "DELETE") {
+      mockState.providers.splice(index, 1);
+      persistProviders();
+      removeProviderAvailability(providerId);
+      removeProviderAppointments(providerId);
+      return { ok: true };
+    }
+  }
+
+  if (pathname === "/availability") {
+    if (method === "GET") {
+      return clone(getAvailability(params));
+    }
+    if (method === "POST") {
+      const slot = createAvailabilitySlot(payload || {});
+      mockState.availability.push(slot);
+      persistAvailability();
+      return clone(slot);
+    }
+  }
+
+  if (pathname.startsWith("/availability/")) {
+    const [, , providerSegment, startSegment, serviceSegment] = pathname.split("/");
+    const providerId = decodeURIComponent(providerSegment || "");
+    const startTime = decodeURIComponent(startSegment || "");
+    const serviceId = decodeURIComponent(serviceSegment || "");
+    if (method === "DELETE") {
+      const before = mockState.availability.length;
+      mockState.availability = mockState.availability.filter(
+        (slot) =>
+          !(
+            slot.provider_id === providerId &&
+            slot.service_id === serviceId &&
+            slot.start_time === startTime
+          )
+      );
+      if (before === mockState.availability.length) {
+        throw mockNotFoundError("Availability slot not found");
+      }
+      persistAvailability();
+      removeAppointmentsForSlot(providerId, serviceId, startTime);
+      return { ok: true };
+    }
+  }
+
+  if (pathname === "/appointments") {
+    if (method === "GET") {
+      return clone(getAppointments(params));
+    }
+    if (method === "POST") {
+      const appointment = createAppointment(payload || {});
+      mockState.appointments.push(appointment);
+      persistAppointments();
+      return clone(appointment);
+    }
+  }
+
+  if (pathname === "/stats/sales") {
+    return clone(getSales(params));
+  }
+
+  throw mockNotFoundError(`Mock API does not support ${method} ${pathname}`);
+}
+
+function safeParseJSON(value) {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return null;
+  }
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function mockNotFoundError(message) {
+  const error = new Error(message || "Not found");
+  error.payload = { error: message || "Not found" };
+  return error;
+}
+
+function mockValidationError(message, fields) {
+  const error = new Error(message || "Validation failed");
+  error.payload = { error: message || "Validation failed", fields };
+  return error;
+}
+
+function createService(payload) {
+  const serviceId = payload.service_id || `svc_${Math.random().toString(36).slice(2, 8)}${Date.now().toString(36)}`;
+  const name = typeof payload.name === "string" && payload.name.trim() ? payload.name.trim() : "New Service";
+  const price = Number.isFinite(payload.price_cents) ? Math.max(0, Math.round(payload.price_cents)) : 0;
+  const duration = Number.isFinite(payload.duration_min) ? Math.max(5, Math.round(payload.duration_min)) : 30;
+  const stateCodes = sanitizeStateCodes(payload.state_codes);
+  return {
+    service_id: serviceId,
+    name,
+    price_cents: price,
+    duration_min: duration,
+    state_codes: stateCodes.length ? stateCodes : ["MN"],
+    active: payload.active !== false
+  };
+}
+
+function sanitizeServiceUpdate(payload) {
+  const update = {};
+  if (typeof payload.name === "string" && payload.name.trim()) update.name = payload.name.trim();
+  if (Number.isFinite(payload.price_cents)) update.price_cents = Math.max(0, Math.round(payload.price_cents));
+  if (Number.isFinite(payload.duration_min)) update.duration_min = Math.max(5, Math.round(payload.duration_min));
+  if (Array.isArray(payload.state_codes)) {
+    const states = sanitizeStateCodes(payload.state_codes);
+    if (states.length) update.state_codes = states;
+  }
+  if (typeof payload.active === "boolean") update.active = payload.active;
+  return update;
+}
+
+function createProvider(payload) {
+  const providerId = payload.provider_id || `prov_${Math.random().toString(36).slice(2, 8)}${Date.now().toString(36)}`;
+  const fullName = typeof payload.full_name === "string" && payload.full_name.trim() ? payload.full_name.trim() : "New Provider";
+  const states = sanitizeStateCodes(payload.state_codes);
+  return {
+    provider_id: providerId,
+    full_name: fullName,
+    email: typeof payload.email === "string" ? payload.email.trim() : "",
+    phone: typeof payload.phone === "string" ? payload.phone.trim() : "",
+    priority: Number.isFinite(payload.priority) ? Math.round(payload.priority) : undefined,
+    active: payload.active !== false,
+    state_codes: states.length ? states : ["MN"],
+    offered_service_ids: sanitizeServiceIds(payload.offered_service_ids)
+  };
+}
+
+function sanitizeProviderUpdate(payload) {
+  const update = {};
+  if (typeof payload.full_name === "string" && payload.full_name.trim()) update.full_name = payload.full_name.trim();
+  if (typeof payload.email === "string") update.email = payload.email.trim();
+  if (typeof payload.phone === "string") update.phone = payload.phone.trim();
+  if (Number.isFinite(payload.priority) || payload.priority === null) {
+    update.priority = Number.isFinite(payload.priority) ? Math.round(payload.priority) : undefined;
+  }
+  if (typeof payload.active === "boolean") update.active = payload.active;
+  if (Array.isArray(payload.state_codes)) {
+    const states = sanitizeStateCodes(payload.state_codes);
+    if (states.length) update.state_codes = states;
+  }
+  if (Array.isArray(payload.offered_service_ids)) {
+    update.offered_service_ids = sanitizeServiceIds(payload.offered_service_ids);
+  }
+  return update;
+}
+
+function sanitizeStateCodes(codes) {
+  if (!Array.isArray(codes)) return [];
+  const cleaned = codes
+    .map((code) => (typeof code === "string" ? code.trim().toUpperCase() : ""))
+    .filter((code) => code && STATE_OPTIONS.includes(code));
+  return Array.from(new Set(cleaned));
+}
+
+function sanitizeServiceIds(ids) {
+  if (!Array.isArray(ids)) return [];
+  const cleaned = ids
+    .map((id) => (typeof id === "string" ? id.trim() : ""))
+    .filter(Boolean);
+  return Array.from(new Set(cleaned));
+}
+
+async function loadMockData() {
+  const [defaultServices, defaultProviders] = await Promise.all([
+    fetchJsonArray("./services.json"),
+    fetchJsonArray("./providers.json")
+  ]);
+
+  const storedServices = readStorage(MOCK_STORAGE_KEYS.services);
+  const storedProviders = readStorage(MOCK_STORAGE_KEYS.providers);
+  const storedAvailability = readStorage(MOCK_STORAGE_KEYS.availability);
+  const storedAppointments = readStorage(MOCK_STORAGE_KEYS.appointments);
+
+  mockState.services = Array.isArray(storedServices) && storedServices.length ? storedServices : defaultServices;
+  mockState.providers = Array.isArray(storedProviders) && storedProviders.length ? storedProviders : defaultProviders;
+  mockState.availability = Array.isArray(storedAvailability) && storedAvailability.length
+    ? storedAvailability
+    : generateMockAvailability(mockState.services, mockState.providers);
+  mockState.appointments = Array.isArray(storedAppointments) ? storedAppointments : [];
+
+  if (supportsStorage) {
+    if (!storedServices) persistServices();
+    if (!storedProviders) persistProviders();
+    if (!storedAvailability) persistAvailability();
+    if (!storedAppointments) persistAppointments();
+  }
+}
+
+async function fetchJsonArray(path) {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error(`Failed to fetch ${path}`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn(err.message);
+    return [];
+  }
+}
+
+function persistServices() {
+  writeStorage(MOCK_STORAGE_KEYS.services, mockState.services);
+}
+
+function persistProviders() {
+  writeStorage(MOCK_STORAGE_KEYS.providers, mockState.providers);
+}
+
+function persistAvailability() {
+  writeStorage(MOCK_STORAGE_KEYS.availability, mockState.availability);
+}
+
+function persistAppointments() {
+  writeStorage(MOCK_STORAGE_KEYS.appointments, mockState.appointments);
+}
+
+function writeStorage(key, value) {
+  if (!supportsStorage) return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.warn("Unable to persist data", err);
+  }
+}
+
+function readStorage(key) {
+  if (!supportsStorage) return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (err) {
+    return null;
+  }
+}
+
+function getAvailability(params) {
+  const serviceId = params.get("service_id");
+  const providerId = params.get("provider_id");
+  const stateCode = params.get("state") || params.get("state_code");
+  const start = params.get("start") ? new Date(params.get("start")) : null;
+  const end = params.get("end") ? new Date(params.get("end")) : null;
+
+  return mockState.availability
+    .filter((slot) => {
+      if (serviceId && slot.service_id !== serviceId) return false;
+      if (providerId && slot.provider_id !== providerId) return false;
+      if (stateCode && slot.state_code !== stateCode) return false;
+      const startTime = new Date(slot.start_time);
+      if (start && startTime < start) return false;
+      if (end && startTime > end) return false;
+      return true;
+    })
+    .map((slot) => availabilityToResponse(slot))
+    .sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
+}
+
+function availabilityToResponse(slot) {
+  const appointmentsCount = countAppointmentsForSlot(slot);
+  const provider = mockState.providers.find((p) => p.provider_id === slot.provider_id);
+  const service = mockState.services.find((s) => s.service_id === slot.service_id);
+  return {
+    provider_id: slot.provider_id,
+    service_id: slot.service_id,
+    state_code: slot.state_code,
+    start_time: slot.start_time,
+    end_time: slot.end_time,
+    capacity: slot.capacity,
+    remaining: Math.max(0, slot.capacity - appointmentsCount),
+    provider_name: provider?.full_name,
+    service_name: service?.name
+  };
+}
+
+function countAppointmentsForSlot(slot) {
+  return mockState.appointments.filter(
+    (appointment) =>
+      appointment.provider_id === slot.provider_id &&
+      appointment.service_id === slot.service_id &&
+      appointment.start_time === slot.start_time &&
+      appointment.status !== "cancelled" &&
+      appointment.status !== "refunded"
+  ).length;
+}
+
+function createAvailabilitySlot(payload) {
+  if (!payload.provider_id) throw mockValidationError("Provider is required");
+  if (!payload.service_id) throw mockValidationError("Service is required");
+  if (!payload.state_code) throw mockValidationError("State code is required");
+  if (!payload.start_time) throw mockValidationError("Start time is required");
+
+  const provider = mockState.providers.find((p) => p.provider_id === payload.provider_id);
+  if (!provider) throw mockValidationError("Provider not found");
+
+  const service = mockState.services.find((s) => s.service_id === payload.service_id);
+  if (!service) throw mockValidationError("Service not found");
+
+  const validStates = provider.state_codes.filter((code) => service.state_codes.includes(code));
+  if (validStates.length && !validStates.includes(payload.state_code)) {
+    throw mockValidationError("Provider is not licensed for that state");
+  }
+
+  const start = new Date(payload.start_time).toISOString();
+  const end = payload.end_time ? new Date(payload.end_time).toISOString() : new Date(new Date(start).getTime() + (service.duration_min || 30) * 60000).toISOString();
+  const capacity = Number.isFinite(payload.capacity) && payload.capacity > 0 ? Math.round(payload.capacity) : 1;
+
+  const exists = mockState.availability.some(
+    (slot) =>
+      slot.provider_id === payload.provider_id &&
+      slot.service_id === payload.service_id &&
+      slot.start_time === start
+  );
+  if (exists) throw mockValidationError("Slot already exists at that time");
+
+  return {
+    provider_id: payload.provider_id,
+    service_id: payload.service_id,
+    state_code: payload.state_code,
+    start_time: start,
+    end_time: end,
+    capacity
+  };
+}
+
+function removeProviderAvailability(providerId) {
+  const filtered = mockState.availability.filter((slot) => slot.provider_id !== providerId);
+  if (filtered.length !== mockState.availability.length) {
+    mockState.availability = filtered;
+    persistAvailability();
+  }
+}
+
+function removeProviderAppointments(providerId) {
+  const filtered = mockState.appointments.filter((appointment) => appointment.provider_id !== providerId);
+  if (filtered.length !== mockState.appointments.length) {
+    mockState.appointments = filtered;
+    persistAppointments();
+  }
+}
+
+function removeAppointmentsForSlot(providerId, serviceId, startTime) {
+  const filtered = mockState.appointments.filter(
+    (appointment) =>
+      !(
+        appointment.provider_id === providerId &&
+        appointment.service_id === serviceId &&
+        appointment.start_time === startTime
+      )
+  );
+  if (filtered.length !== mockState.appointments.length) {
+    mockState.appointments = filtered;
+    persistAppointments();
+  }
+}
+
+function getAppointments(params) {
+  const serviceId = params.get("service_id");
+  const providerId = params.get("provider_id");
+  const status = params.get("status");
+  const start = params.get("start") ? new Date(params.get("start")) : null;
+  const end = params.get("end") ? new Date(params.get("end")) : null;
+
+  return mockState.appointments
+    .filter((appointment) => {
+      if (serviceId && appointment.service_id !== serviceId) return false;
+      if (providerId && appointment.provider_id !== providerId) return false;
+      if (status && appointment.status !== status) return false;
+      const startTime = new Date(appointment.start_time);
+      if (start && startTime < start) return false;
+      if (end && startTime > end) return false;
+      return true;
+    })
+    .map((appointment) => enrichAppointment(appointment))
+    .sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+}
+
+function enrichAppointment(appointment) {
+  const provider = mockState.providers.find((p) => p.provider_id === appointment.provider_id);
+  const service = mockState.services.find((s) => s.service_id === appointment.service_id);
+  return {
+    ...appointment,
+    provider_name: provider?.full_name || appointment.provider_name,
+    service_name: service?.name || appointment.service_name
+  };
+}
+
+function createAppointment(payload) {
+  const required = ["service_id", "provider_id", "start_time", "state_code", "patient_name", "patient_email", "patient_phone"];
+  const missing = required.filter((field) => !payload[field]);
+  if (missing.length) {
+    const fields = missing.reduce((acc, field) => {
+      acc[field] = "Required";
+      return acc;
+    }, {});
+    throw mockValidationError("Missing required fields", fields);
+  }
+
+  const slot = mockState.availability.find(
+    (item) =>
+      item.provider_id === payload.provider_id &&
+      item.service_id === payload.service_id &&
+      item.start_time === payload.start_time
+  );
+  if (!slot) throw mockValidationError("Selected time is no longer available");
+  if (slot.state_code !== payload.state_code) throw mockValidationError("State does not match availability");
+
+  const existing = countAppointmentsForSlot(slot);
+  if (existing >= slot.capacity) throw mockValidationError("Slot is fully booked");
+
+  const service = mockState.services.find((item) => item.service_id === payload.service_id);
+  const provider = mockState.providers.find((item) => item.provider_id === payload.provider_id);
+
+  const appointment = {
+    appointment_id: `apt_${Math.random().toString(36).slice(2, 8)}${Date.now().toString(36)}`,
+    service_id: payload.service_id,
+    provider_id: payload.provider_id,
+    state_code: payload.state_code,
+    start_time: payload.start_time,
+    end_time: slot.end_time,
+    status: "scheduled",
+    patient_name: payload.patient_name,
+    patient_email: payload.patient_email,
+    patient_phone: payload.patient_phone,
+    price_cents: service?.price_cents || 0,
+    service_name: service?.name,
+    provider_name: provider?.full_name,
+    created_at: new Date().toISOString()
+  };
+
+  return appointment;
+}
+
+function getSales(params) {
+  const start = params.get("start") ? new Date(params.get("start")) : null;
+  const end = params.get("end") ? new Date(params.get("end")) : null;
+  const appointments = mockState.appointments.filter((appointment) => {
+    if (appointment.status === "cancelled" || appointment.status === "refunded") return false;
+    const startTime = new Date(appointment.start_time);
+    if (start && startTime < start) return false;
+    if (end && startTime > end) return false;
+    return true;
+  });
+
+  const gross = appointments.reduce((sum, appointment) => sum + (appointment.price_cents || 0), 0);
+  const refunds = 0;
+  const net = gross - refunds;
+  const count = appointments.length;
+  const avg = count ? Math.round(net / count) : 0;
+
+  const dailyMap = new Map();
+  appointments.forEach((appointment) => {
+    const date = appointment.start_time.slice(0, 10);
+    if (!dailyMap.has(date)) {
+      dailyMap.set(date, {
+        date,
+        gross_cents: 0,
+        refunds_cents: 0,
+        net_cents: 0,
+        appointment_count: 0
+      });
+    }
+    const entry = dailyMap.get(date);
+    entry.gross_cents += appointment.price_cents || 0;
+    entry.net_cents += appointment.price_cents || 0;
+    entry.appointment_count += 1;
+  });
+
+  return {
+    summary: {
+      gross_cents: gross,
+      refunds_cents: refunds,
+      net_cents: net,
+      paid_appointments: count,
+      average_order_value_cents: avg
+    },
+    daily: Array.from(dailyMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+  };
+}
+
+function generateMockAvailability(services, providers) {
+  const slots = [];
+  const base = new Date();
+  providers.forEach((provider, providerIndex) => {
+    provider.offered_service_ids.forEach((serviceId, serviceIndex) => {
+      const service = services.find((item) => item.service_id === serviceId);
+      if (!service) return;
+      const sharedStates = provider.state_codes.filter((code) => service.state_codes.includes(code));
+      if (!sharedStates.length) return;
+      for (let day = 0; day < 7; day++) {
+        const start = new Date(base);
+        start.setDate(base.getDate() + day);
+        start.setHours(9 + (serviceIndex % 3) * 2, 0, 0, 0);
+        start.setMinutes(0, 0, 0);
+        start.setSeconds(0, 0);
+        start.setMilliseconds(0);
+        const offsetMinutes = providerIndex * 20;
+        start.setMinutes(start.getMinutes() + offsetMinutes);
+        const end = new Date(start.getTime() + (service.duration_min || 30) * 60000);
+        const stateCode = sharedStates[(day + serviceIndex) % sharedStates.length];
+        slots.push({
+          provider_id: provider.provider_id,
+          service_id: serviceId,
+          state_code: stateCode,
+          start_time: start.toISOString(),
+          end_time: end.toISOString(),
+          capacity: 1
+        });
+      }
+    });
+  });
+  return slots.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
 }
 
 function showToast(message, isError = false) {

@@ -1,0 +1,34 @@
+[
+  {
+    "service_id": "svc_general_consult",
+    "name": "General Consultation",
+    "price_cents": 7500,
+    "duration_min": 30,
+    "state_codes": ["MN", "WI", "ND", "SD"],
+    "active": true
+  },
+  {
+    "service_id": "svc_mental_health",
+    "name": "Mental Health Consultation",
+    "price_cents": 12000,
+    "duration_min": 60,
+    "state_codes": ["MN", "WI"],
+    "active": true
+  },
+  {
+    "service_id": "svc_dermatology",
+    "name": "Dermatology Consultation",
+    "price_cents": 9500,
+    "duration_min": 45,
+    "state_codes": ["MN"],
+    "active": true
+  },
+  {
+    "service_id": "svc_follow_up",
+    "name": "Follow-up Visit",
+    "price_cents": 5000,
+    "duration_min": 20,
+    "state_codes": ["MN", "WI", "ND"],
+    "active": true
+  }
+]

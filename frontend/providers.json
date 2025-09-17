@@ -1,0 +1,30 @@
+[
+  {
+    "provider_id": "prov_kumka",
+    "full_name": "Joseph Kumka",
+    "email": "joseph.kumka@gmail.com",
+    "phone": "6122297117",
+    "priority": 1,
+    "state_codes": ["MN", "WI"],
+    "offered_service_ids": [
+      "svc_general_consult",
+      "svc_mental_health",
+      "svc_follow_up"
+    ],
+    "active": true
+  },
+  {
+    "provider_id": "prov_lee",
+    "full_name": "Dr. Hannah Lee",
+    "email": "hannah.lee@example.com",
+    "phone": "6125550100",
+    "priority": 2,
+    "state_codes": ["MN", "ND"],
+    "offered_service_ids": [
+      "svc_general_consult",
+      "svc_dermatology",
+      "svc_follow_up"
+    ],
+    "active": true
+  }
+]
