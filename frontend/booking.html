@@ -1,719 +1,771 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment - Edina Clinic</title>
-    <script src="https://js.stripe.com/v3/"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 10px; margin-bottom: 2rem; text-align: center; }
-        .back-btn { background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-bottom: 20px; text-decoration: none; display: inline-block; }
-        .service-info, .booking-section, .payment-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .service-dropdown, .provider-dropdown { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 1rem; background: white; cursor: pointer; }
-        .service-dropdown:focus, .provider-dropdown:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
-        .service-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
-        .service-price { font-size: 1.3rem; color: #28a745; font-weight: bold; margin-bottom: 10px; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .calendar-nav { background: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-        .month-year { font-size: 1.2rem; font-weight: bold; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 20px; }
-        .day-header { text-align: center; font-weight: bold; padding: 10px; background: #f8f9fa; border-radius: 4px; color: #666; }
-        .calendar-day { text-align: center; padding: 12px; border-radius: 4px; cursor: pointer; transition: all 0.2s; border: 1px solid #e0e0e0; background: white; }
-        .calendar-day.other-month { color: #ccc; background: #fafafa; cursor: not-allowed; }
-        .calendar-day.available { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
-        .calendar-day.selected { background: #007bff; color: white; border-color: #007bff; }
-        .calendar-day.unavailable { background: #f8f8f8; color: #ccc; cursor: not-allowed; }
-        .times-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .time-slot { border: 2px solid #e0e0e0; border-radius: 8px; background: white; padding: 15px; text-align: center; transition: all 0.2s; }
-        .time-slot.selected { border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.2); }
-        .time-text { font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; color: #333; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 1rem; }
-        .book-btn, .pay-btn { background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 15px 30px; border-radius: 6px; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 20px; }
-        .book-btn:disabled, .pay-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .success { background: #d4edda; color: #155724; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .debug-panel { background: #f8f9fa; border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-top: 20px; font-family: monospace; font-size: 0.9rem; display: none; max-height: 300px; overflow-y: auto; }
-        .appointment-summary { background: #f8f9fa; border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .summary-item:last-child { margin-bottom: 0; font-weight: bold; border-top: 1px solid #e0e0e0; padding-top: 10px; }
-        #card-element { padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; background: white; }
-        .payment-steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
-        .step { display: flex; align-items: center; margin: 0 10px; }
-        .step-number { width: 30px; height: 30px; border-radius: 50%; background: #e0e0e0; color: #666; display: flex; align-items: center; justify-content: center; margin-right: 8px; font-weight: bold; }
-        .step.active .step-number { background: #007bff; color: white; }
-        .step.completed .step-number { background: #28a745; color: white; }
-        .step-arrow { margin: 0 10px; color: #ccc; }
-        @media (max-width: 768px) { .times-grid { grid-template-columns: 1fr; } .calendar-grid { gap: 3px; } .calendar-day { padding: 8px; font-size: 0.9rem; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Telehealth Appointment - Edina Clinic</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --primary: #2f6fed;
+      --primary-dark: #1d4fc4;
+      --success: #2fb36c;
+      --danger: #d9534f;
+      --neutral: #6c757d;
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #1f2933;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--text); }
+    a { color: var(--primary); }
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 16px 80px; }
+    header { background: linear-gradient(120deg, var(--primary), var(--primary-dark)); color: #fff; padding: 32px 24px; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 18px 45px rgba(47,111,237,0.18); }
+    header h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 34px); }
+    header p { margin: 0; opacity: 0.9; font-size: 16px; }
+    .steps { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+    .step { flex: 1; min-width: 160px; background: rgba(255,255,255,0.75); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; transition: transform 0.2s ease; box-shadow: 0 6px 18px rgba(30,64,175,0.08); }
+    .step.active { background: var(--primary); color: #fff; transform: translateY(-2px); }
+    .step.completed { background: var(--success); color: #fff; }
+    .step-number { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; background: rgba(255,255,255,0.18); }
+    .card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: 0 12px 40px rgba(15, 23, 42, 0.08); margin-bottom: 24px; }
+    .card h2 { margin-top: 0; }
+    .service-select { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #d7deeb; font-size: 16px; margin-bottom: 16px; }
+    .service-meta { display: grid; gap: 12px; margin-top: 8px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+    .service-meta div { background: #f5f7ff; border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+    .calendar { margin-top: 12px; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .calendar-header button { background: var(--primary); border: 0; color: #fff; padding: 8px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+    .day-name { text-align: center; font-size: 13px; text-transform: uppercase; color: #6b7280; }
+    .day { background: #fff; border: 1px solid #e4e7f2; border-radius: 12px; min-height: 64px; padding: 6px; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: center; transition: all 0.2s ease; font-weight: 600; }
+    .day.other-month { color: #a0aec0; background: #f1f3f8; cursor: not-allowed; }
+    .day.past { color: #adb5bd; cursor: not-allowed; background: #f8f9fc; }
+    .day.unavailable { color: #94a3b8; cursor: not-allowed; background: #f5f6fa; }
+    .day.available { border-color: rgba(47,111,237,0.35); background: rgba(47,111,237,0.08); color: var(--primary-dark); }
+    .day.selected { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 10px 30px rgba(47,111,237,0.3); }
+    .time-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-top: 16px; }
+    .time-slot { border: 1px solid #d6dce8; border-radius: 14px; padding: 14px; background: #fff; cursor: pointer; font-weight: 600; text-align: left; display: flex; flex-direction: column; gap: 6px; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .time-slot:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(47,111,237,0.16); }
+    .time-slot.selected { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 12px 30px rgba(47,111,237,0.3); }
+    .time-provider { font-size: 13px; opacity: 0.85; }
+    form { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); }
+    label { font-weight: 600; display: block; margin-bottom: 6px; }
+    input[type="text"], input[type="email"], input[type="tel"] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ccd4e0; font-size: 16px; }
+    .consent { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+    .consent input { margin-top: 3px; }
+    .actions { grid-column: 1 / -1; display: flex; gap: 12px; flex-wrap: wrap; }
+    button.primary { background: linear-gradient(120deg, var(--primary), var(--primary-dark)); color: #fff; border: none; border-radius: 12px; padding: 14px 28px; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 12px 30px rgba(47,111,237,0.3); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    button.primary:disabled { opacity: 0.65; cursor: not-allowed; box-shadow: none; }
+    button.secondary { background: #e2e8f6; color: var(--primary-dark); border: none; border-radius: 12px; padding: 12px 24px; font-weight: 600; cursor: pointer; }
+    .notice { background: rgba(47,111,237,0.08); border: 1px solid rgba(47,111,237,0.12); border-radius: 12px; padding: 16px; font-size: 14px; margin-top: 16px; }
+    .error { background: rgba(217,83,79,0.12); border: 1px solid rgba(217,83,79,0.2); color: #952c2b; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; }
+    .success { background: rgba(47,179,108,0.12); border: 1px solid rgba(47,179,108,0.2); color: #246f46; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; }
+    .summary { display: grid; gap: 14px; margin-top: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .summary .item { background: #f6f8ff; border-radius: 12px; padding: 16px; }
+    .summary .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; }
+    .summary .value { font-weight: 700; font-size: 16px; margin-top: 4px; word-break: break-word; }
+    .confirmation { text-align: center; }
+    .confirmation h3 { font-size: 24px; margin-bottom: 12px; }
+    .detail-grid { margin: 24px auto; max-width: 640px; display: grid; gap: 12px; }
+    .detail-row { background: #f8f9ff; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; gap: 20px; align-items: center; text-align: left; }
+    .detail-row span:first-child { font-weight: 600; color: #5f6a7d; }
+    .resend-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 24px; }
+    .resend-actions button { padding: 12px 18px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; }
+    .resend-primary { background: var(--primary); color: #fff; }
+    .resend-secondary { background: #e2e8f6; color: var(--primary-dark); }
+    .timezone-note { font-size: 13px; color: #6b7280; margin-top: 8px; }
+    .empty-state { background: #f8f9fc; padding: 18px; border-radius: 12px; text-align: center; color: #6b7280; margin-top: 16px; }
+    @media (max-width: 640px) {
+      .card { padding: 18px; }
+      .calendar-grid { gap: 6px; }
+      .day { min-height: 56px; }
+      button.primary, button.secondary { width: 100%; text-align: center; }
+      .resend-actions button { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Book Your Appointment Now</h1>
-        </div>
+  <div class="container">
+    <header>
+      <h1>Book Your Telehealth Appointment</h1>
+      <p>Select a service, choose a time that works for you, and we'll send the Zoom link by email and text.</p>
+    </header>
 
-        <!-- Progress Steps -->
-        <div class="payment-steps">
-            <div class="step active" id="step-1">
-                <div class="step-number">1</div>
-                <span>Select Service</span>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="step" id="step-2">
-                <div class="step-number">2</div>
-                <span>Choose Time</span>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="step" id="step-3">
-                <div class="step-number">3</div>
-                <span>Payment</span>
-            </div>
-            <div class="step-arrow">→</div>
-            <div class="step" id="step-4">
-                <div class="step-number">4</div>
-                <span>Confirmed</span>
-            </div>
-        </div>
-
-        <a href="javascript:void(0)" onclick="goBack()" class="back-btn" id="back-btn" style="display: none;">← Back to Services</a>
-
-        <div class="service-info">
-            <div style="margin-bottom: 20px;">
-                <label for="service-select">Select Service:</label>
-                <select id="service-select" class="service-dropdown">
-                    <option value="">Loading services...</option>
-                </select>
-            </div>
-            <div id="service-details" style="display: none;">
-                <div class="service-title" id="service-name"></div>
-                <div class="service-price" id="service-price"></div>
-                <div id="service-description"></div>
-            </div>
-        </div>
-
-        <div id="error-message"></div>
-        <div id="success-message"></div>
-
-        <div class="booking-section" id="booking-section" style="display: none;">
-            <h3>Select a date:</h3>
-            
-            <div class="calendar-header">
-                <button class="calendar-nav" id="prev-month">‹</button>
-                <div class="month-year" id="month-year">January 2025</div>
-                <button class="calendar-nav" id="next-month">›</button>
-            </div>
-            
-            <div class="calendar-grid" id="calendar-grid">
-                <div class="day-header">Sun</div><div class="day-header">Mon</div><div class="day-header">Tue</div><div class="day-header">Wed</div><div class="day-header">Thu</div><div class="day-header">Fri</div><div class="day-header">Sat</div>
-            </div>
-
-            <div id="times-container" style="display: none;">
-                <h3>Available times:</h3>
-                <div class="times-grid" id="times-grid"></div>
-            </div>
-
-            <div id="patient-info" style="display: none;">
-                <h3>Your Information:</h3>
-                <form id="booking-form">
-                    <div class="form-group">
-                        <label for="patient-email">Email Address:</label>
-                        <input type="email" id="patient-email" required>
-                    </div>
-                    <button type="submit" class="book-btn" id="book-btn" disabled>Continue to Payment</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Payment Section -->
-        <div class="payment-section" id="payment-section" style="display: none;">
-            <h3>Payment Information</h3>
-            
-            <div class="appointment-summary">
-                <h4>Appointment Summary</h4>
-                <div class="summary-item">
-                    <span>Service:</span>
-                    <span id="summary-service"></span>
-                </div>
-                <div class="summary-item">
-                    <span>Date & Time:</span>
-                    <span id="summary-datetime"></span>
-                </div>
-                <div class="summary-item">
-                    <span>Provider:</span>
-                    <span id="summary-provider"></span>
-                </div>
-                <div class="summary-item">
-                    <span>Total:</span>
-                    <span id="summary-total"></span>
-                </div>
-            </div>
-
-            <form id="payment-form">
-                <div class="form-group">
-                    <label for="card-element">Credit or debit card</label>
-                    <div id="card-element">
-                        <!-- Stripe Elements will create form elements here -->
-                    </div>
-                    <div id="card-errors" role="alert" style="color: #dc3545; margin-top: 10px;"></div>
-                </div>
-                
-                <button type="submit" class="pay-btn" id="pay-btn" disabled>
-                    <span id="button-text">Pay Now</span>
-                </button>
-            </form>
-        </div>
-
-        <!-- Confirmation Section -->
-        <div class="booking-section" id="confirmation-section" style="display: none;">
-            <div class="success">
-                <h3>🎉 Appointment Confirmed!</h3>
-                <p>Your telehealth appointment has been successfully booked and paid for.</p>
-                <div style="margin-top: 15px;">
-                    <strong>Appointment ID:</strong> <span id="confirmation-id"></span><br>
-                    <strong>Next Steps:</strong> You will receive a confirmation email with meeting details.
-                </div>
-            </div>
-            <button onclick="location.reload()" class="book-btn">Book Another Appointment</button>
-        </div>
-
-        <button onclick="toggleDebug()" style="margin-top: 20px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px;">Debug</button>
-        <div id="debug-panel" class="debug-panel"><div id="debug-log"></div></div>
+    <div class="steps" id="steps">
+      <div class="step active" data-step="1"><div class="step-number">1</div>Choose Service</div>
+      <div class="step" data-step="2"><div class="step-number">2</div>Select Date & Time</div>
+      <div class="step" data-step="3"><div class="step-number">3</div>Patient Details</div>
+      <div class="step" data-step="4"><div class="step-number">4</div>Confirmed</div>
     </div>
 
-    <script>
-        const API = 'https://1tyt5fwh61.execute-api.us-east-1.amazonaws.com';
-        const stripe = Stripe('pk_test_51S7iLG1cyCy4vYhNswLFsrBUiwWKrq0pL3NvPYQHMzzPN1RgfulQmPvt6FDnLtsBmY5CT4iCCp40wzsOT2BCIdE700MWui8QaD');
-        
-        let currentDate = new Date();
-        let selectedDate = null;
-        let selectedTime = null;
-        let selectedProvider = null;
-        let selectedProviderName = null;
-        let availableDates = new Set();
-        let currentServiceId = null;
-        let currentServiceData = null;
-        let availableServices = [];
-        let currentStep = 1;
-        let paymentIntent = null;
-        let cardElement = null;
-        let appointmentData = {};
+    <div id="alert-container"></div>
 
-        function debugLog(msg, data = null) {
-            const log = document.getElementById('debug-log');
-            const time = new Date().toLocaleTimeString();
-            log.innerHTML += `<div>[${time}] ${msg}${data ? ': ' + JSON.stringify(data) : ''}</div>`;
-            log.scrollTop = log.scrollHeight;
-            console.log(`[${time}] ${msg}`, data);
+    <section class="card" id="service-card">
+      <h2>Select a Service</h2>
+      <select id="service-select" class="service-select">
+        <option value="">Loading services...</option>
+      </select>
+      <div id="service-details" style="display:none;">
+        <div class="service-meta" id="service-meta"></div>
+        <p id="service-description" style="margin-top:12px; font-size:15px; line-height:1.5;"></p>
+      </div>
+    </section>
+
+    <section class="card" id="schedule-card" style="display:none;">
+      <div class="section-heading" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <h2>Pick a day</h2>
+        <button class="secondary" type="button" id="change-service">Change service</button>
+      </div>
+      <div class="timezone-note">All appointment times are shown in your timezone (<span id="timezone-label"></span>).</div>
+      <div class="calendar" id="calendar"></div>
+      <div id="times-container" style="display:none;">
+        <h3 style="margin-top:24px;">Available times</h3>
+        <div class="time-grid" id="time-grid"></div>
+      </div>
+      <div class="empty-state" id="no-slots" style="display:none;">No appointments available for the selected day. Pick another date.</div>
+    </section>
+
+    <section class="card" id="patient-card" style="display:none;">
+      <h2>Who's attending?</h2>
+      <form id="patient-form">
+        <div>
+          <label for="patient-name">Full name</label>
+          <input type="text" id="patient-name" required autocomplete="name" placeholder="Jane Doe" />
+        </div>
+        <div>
+          <label for="patient-email">Email</label>
+          <input type="email" id="patient-email" required autocomplete="email" placeholder="you@example.com" />
+        </div>
+        <div>
+          <label for="patient-phone">Mobile number</label>
+          <input type="tel" id="patient-phone" required autocomplete="tel" placeholder="+1 555 123 4567" />
+        </div>
+        <div class="consent">
+          <input type="checkbox" id="sms-consent" required />
+          <label for="sms-consent">I agree to receive appointment-related text messages (confirmations, reminders, updates, and cancellations). Message and data rates may apply.</label>
+        </div>
+        <div class="actions">
+          <button class="secondary" type="button" id="back-to-calendar">Back</button>
+          <button class="primary" type="submit" id="confirm-button" disabled>Confirm &amp; Pay</button>
+        </div>
+      </form>
+      <div class="notice">
+        We use your mobile number and email to send the Zoom link instantly after checkout and to send reminders 24 hours and 1 hour before the visit.
+      </div>
+    </section>
+
+    <section class="card" id="confirmation-card" style="display:none;">
+      <div class="confirmation">
+        <div class="success" id="confirmation-banner">Confirmation email and text have been sent. Your telehealth visit is ready.</div>
+        <h3>Appointment Confirmed</h3>
+        <p id="confirmation-summary"></p>
+        <div class="detail-grid">
+          <div class="detail-row"><span>Service</span><span id="detail-service"></span></div>
+          <div class="detail-row"><span>Provider</span><span id="detail-provider"></span></div>
+          <div class="detail-row"><span>Date &amp; Time</span><span id="detail-datetime"></span></div>
+          <div class="detail-row"><span>Zoom Link</span><span><a id="detail-zoom" href="#" target="_blank" rel="noopener">Join visit</a></span></div>
+          <div class="detail-row"><span>Cancellation Policy</span><span id="detail-policy"></span></div>
+        </div>
+        <div class="resend-actions">
+          <button class="resend-primary" type="button" id="resend-confirmation">Resend email &amp; text</button>
+          <button class="resend-secondary" type="button" id="book-another">Book another appointment</button>
+          <a class="resend-secondary" id="add-calendar" href="#" download="appointment.ics">Add to calendar</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      apiBase: detectApiBase(),
+      services: [],
+      providers: [],
+      appointments: [],
+      servicePreferences: {},
+      selectedServiceId: null,
+      selectedDate: null,
+      selectedSlot: null,
+      currentMonth: new Date(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      latestAppointment: null
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('timezone-label').textContent = state.timezone;
+      initialize();
+    });
+
+    async function initialize() {
+      try {
+        setAlert('');
+        await Promise.all([loadServices(), loadProviders(), loadServicePreferences()]);
+        await loadAppointments();
+        renderServices();
+        renderCalendar();
+        registerEvents();
+        updateSteps(1);
+      } catch (error) {
+        console.error('booking init error', error);
+        setAlert('Unable to load booking information. Please refresh and try again.', 'error');
+      }
+    }
+
+    function registerEvents() {
+      document.getElementById('service-select').addEventListener('change', onServiceChange);
+      document.getElementById('change-service').addEventListener('click', () => resetToService());
+      document.getElementById('back-to-calendar').addEventListener('click', () => showSection('schedule'));
+      document.getElementById('patient-form').addEventListener('submit', handleSubmit);
+      document.getElementById('resend-confirmation').addEventListener('click', resendConfirmation);
+      document.getElementById('book-another').addEventListener('click', () => resetAll());
+      document.getElementById('sms-consent').addEventListener('change', toggleConfirmButton);
+      document.getElementById('patient-name').addEventListener('input', toggleConfirmButton);
+      document.getElementById('patient-email').addEventListener('input', toggleConfirmButton);
+      document.getElementById('patient-phone').addEventListener('input', toggleConfirmButton);
+    }
+
+    function toggleConfirmButton() {
+      const ready = Boolean(document.getElementById('patient-name').value.trim()) &&
+        Boolean(document.getElementById('patient-email').value.trim()) &&
+        Boolean(document.getElementById('patient-phone').value.trim()) &&
+        document.getElementById('sms-consent').checked;
+      document.getElementById('confirm-button').disabled = !ready;
+    }
+
+    function showSection(key) {
+      document.getElementById('service-card').style.display = key === 'service' ? 'block' : 'none';
+      document.getElementById('schedule-card').style.display = key === 'schedule' ? 'block' : 'none';
+      document.getElementById('patient-card').style.display = key === 'patient' ? 'block' : 'none';
+      document.getElementById('confirmation-card').style.display = key === 'confirmation' ? 'block' : 'none';
+      if (key === 'service') updateSteps(1);
+      if (key === 'schedule') updateSteps(2);
+      if (key === 'patient') updateSteps(3);
+      if (key === 'confirmation') updateSteps(4);
+    }
+
+    function updateSteps(step) {
+      document.querySelectorAll('#steps .step').forEach((node) => {
+        const target = Number(node.dataset.step);
+        node.classList.toggle('active', target === step);
+        node.classList.toggle('completed', target < step);
+      });
+    }
+
+    function setAlert(message, type) {
+      const container = document.getElementById('alert-container');
+      container.innerHTML = '';
+      if (!message) return;
+      const div = document.createElement('div');
+      div.className = type === 'error' ? 'error' : 'success';
+      div.textContent = message;
+      container.appendChild(div);
+    }
+
+    async function loadServices() {
+      const res = await fetch(`${state.apiBase}/services`, { cache: 'no-store' });
+      const payload = await res.json().catch(() => ({}));
+      const list = Array.isArray(payload) ? payload : Array.isArray(payload.services) ? payload.services : [];
+      state.services = list.map(normalizeService).filter(Boolean);
+      if (!res.ok) throw new Error('service load failed');
+    }
+
+    async function loadProviders() {
+      const res = await fetch(`${state.apiBase}/providers`, { cache: 'no-store' });
+      const payload = await res.json().catch(() => ({}));
+      const list = Array.isArray(payload) ? payload : Array.isArray(payload.providers) ? payload.providers : [];
+      state.providers = list.map(normalizeProvider).filter(Boolean);
+      if (!res.ok) throw new Error('provider load failed');
+    }
+
+    async function loadServicePreferences() {
+      try {
+        const res = await fetch(`${state.apiBase}/services/preferences`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const prefs = await res.json().catch(() => ({}));
+        if (prefs && typeof prefs === 'object') state.servicePreferences = prefs;
+      } catch (error) {
+        console.warn('service preferences unavailable', error);
+      }
+    }
+
+    async function loadAppointments() {
+      const start = new Date();
+      const end = new Date();
+      end.setDate(end.getDate() + 120);
+      const url = new URL(`${state.apiBase}/appointments`);
+      url.searchParams.set('start', start.toISOString());
+      url.searchParams.set('end', end.toISOString());
+      const res = await fetch(url, { cache: 'no-store' });
+      const payload = await res.json().catch(() => ({}));
+      const list = Array.isArray(payload?.appointments) ? payload.appointments : [];
+      state.appointments = list.map(normalizeAppointmentRecord);
+    }
+
+    function renderServices() {
+      const select = document.getElementById('service-select');
+      if (!state.services.length) {
+        select.innerHTML = '<option value="">No services configured</option>';
+        return;
+      }
+      select.innerHTML = '<option value="">Choose a service...</option>' + state.services.map((service) => {
+        return `<option value="${service.id}">${service.name} – ${formatCurrency(service.price.amount, service.price.currency)}</option>`;
+      }).join('');
+    }
+
+    function renderCalendar() {
+      const calendar = document.getElementById('calendar');
+      calendar.innerHTML = '';
+      const header = document.createElement('div');
+      header.className = 'calendar-header';
+      const prev = document.createElement('button');
+      prev.textContent = '‹';
+      prev.type = 'button';
+      prev.addEventListener('click', () => {
+        state.currentMonth.setMonth(state.currentMonth.getMonth() - 1);
+        renderCalendar();
+        if (state.selectedServiceId) markAvailability();
+      });
+      const next = document.createElement('button');
+      next.textContent = '›';
+      next.type = 'button';
+      next.addEventListener('click', () => {
+        state.currentMonth.setMonth(state.currentMonth.getMonth() + 1);
+        renderCalendar();
+        if (state.selectedServiceId) markAvailability();
+      });
+      const title = document.createElement('div');
+      title.style.fontWeight = '700';
+      title.style.fontSize = '18px';
+      title.textContent = state.currentMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+      header.appendChild(prev);
+      header.appendChild(title);
+      header.appendChild(next);
+      calendar.appendChild(header);
+
+      const grid = document.createElement('div');
+      grid.className = 'calendar-grid';
+      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      dayNames.forEach((name) => {
+        const div = document.createElement('div');
+        div.className = 'day-name';
+        div.textContent = name;
+        grid.appendChild(div);
+      });
+
+      const year = state.currentMonth.getFullYear();
+      const month = state.currentMonth.getMonth();
+      const first = new Date(year, month, 1);
+      const start = new Date(first);
+      start.setDate(first.getDate() - first.getDay());
+
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(start);
+        date.setDate(start.getDate() + i);
+        const day = document.createElement('button');
+        day.type = 'button';
+        day.className = 'day';
+        const dateStr = formatDateKey(date);
+        day.textContent = date.getDate();
+        day.dataset.date = dateStr;
+
+        if (date.getMonth() !== month) {
+          day.classList.add('other-month');
+        }
+        if (isBeforeToday(date)) {
+          day.classList.add('past');
+          day.disabled = true;
         }
 
-        function toggleDebug() { 
-            const p = document.getElementById('debug-panel'); 
-            p.style.display = p.style.display === 'none' ? 'block' : 'none'; 
-        }
-        
-        function showError(msg) { 
-            document.getElementById('error-message').innerHTML = `<div class="error">${msg}</div>`; 
-            document.getElementById('success-message').innerHTML = '';
-        }
-        
-        function showSuccess(msg) { 
-            document.getElementById('success-message').innerHTML = `<div class="success">${msg}</div>`; 
-            document.getElementById('error-message').innerHTML = '';
-        }
-        
-        function goBack() { 
-            document.getElementById('service-select').value = '';
-            document.getElementById('service-details').style.display = 'none';
-            document.getElementById('booking-section').style.display = 'none';
-            document.getElementById('payment-section').style.display = 'none';
-            document.getElementById('confirmation-section').style.display = 'none';
-            document.getElementById('back-btn').style.display = 'none';
-            document.getElementById('error-message').innerHTML = '';
-            document.getElementById('success-message').innerHTML = '';
-            clearSelection();
-            updateStep(1);
-            debugLog('Back to services - interface reset');
-        }
+        day.addEventListener('click', () => selectDate(dateStr));
+        grid.appendChild(day);
+      }
+      calendar.appendChild(grid);
+      if (state.selectedServiceId) markAvailability();
+    }
 
-        function updateStep(step) {
-            currentStep = step;
-            for (let i = 1; i <= 4; i++) {
-                const stepElement = document.getElementById(`step-${i}`);
-                stepElement.classList.remove('active', 'completed');
-                if (i < step) {
-                    stepElement.classList.add('completed');
-                } else if (i === step) {
-                    stepElement.classList.add('active');
-                }
-            }
+    function markAvailability() {
+      const availableDates = new Set();
+      const month = state.currentMonth.getMonth();
+      const year = state.currentMonth.getFullYear();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dateStr = formatDateKey(date);
+        const slots = computeSlots(dateStr);
+        if (slots.length) availableDates.add(dateStr);
+      }
+      document.querySelectorAll('.day').forEach((node) => {
+        const dateStr = node.dataset.date;
+        node.classList.remove('available','unavailable','selected');
+        if (state.selectedDate === dateStr) node.classList.add('selected');
+        if (node.classList.contains('past') || node.classList.contains('other-month')) return;
+        if (availableDates.has(dateStr)) {
+          node.classList.add('available');
+        } else {
+          node.classList.add('unavailable');
+          node.disabled = true;
         }
+      });
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadServices(); 
-            setupEvents(); 
-            renderCalendar();
-            setupStripe();
+    function selectDate(dateStr) {
+      state.selectedDate = dateStr;
+      document.querySelectorAll('.day').forEach((node) => {
+        if (node.dataset.date === dateStr) {
+          node.classList.add('selected');
+        } else {
+          node.classList.remove('selected');
+        }
+      });
+      const slots = computeSlots(dateStr);
+      renderSlots(slots);
+      showSection('schedule');
+      document.getElementById('times-container').style.display = 'block';
+      document.getElementById('no-slots').style.display = slots.length ? 'none' : 'block';
+    }
+
+    function computeSlots(dateStr) {
+      if (!state.selectedServiceId) return [];
+      const service = state.services.find((svc) => svc.id === state.selectedServiceId);
+      if (!service) return [];
+      const date = new Date(`${dateStr}T00:00:00`);
+      const day = date.getDay();
+      const duration = service.duration_min || 30;
+      const bufferBefore = service.buffer_before_min || 0;
+      const bufferAfter = service.buffer_after_min || 0;
+
+      const results = [];
+      state.providers.forEach((provider) => {
+        if (!providerSupportsService(provider, service.id)) return;
+        const slots = Array.isArray(provider.availability) ? provider.availability : [];
+        slots.filter((slot) => Number(slot.day) === day).forEach((slot) => {
+          const startMinutes = parseTimeToMinutes(slot.start);
+          const endMinutes = parseTimeToMinutes(slot.end);
+          if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) return;
+          for (let minutes = startMinutes; minutes + duration <= endMinutes; minutes += duration) {
+            const start = new Date(date);
+            start.setHours(0, 0, 0, 0);
+            start.setMinutes(minutes);
+            const end = new Date(start.getTime() + duration * 60000);
+            if (hasConflict(provider.provider_id, start, end, bufferBefore, bufferAfter)) continue;
+            results.push({
+              provider_id: provider.provider_id,
+              provider_name: provider.provider_name,
+              start_time: start.toISOString(),
+              end_time: end.toISOString()
+            });
+          }
         });
+      });
+      results.sort((a, b) => a.start_time.localeCompare(b.start_time));
+      return results;
+    }
 
-        function setupStripe() {
-            const elements = stripe.elements();
-            cardElement = elements.create('card', {
-                style: {
-                    base: {
-                        fontSize: '16px',
-                        color: '#424770',
-                        '::placeholder': {
-                            color: '#aab7c4',
-                        },
-                    },
-                },
-            });
-            cardElement.mount('#card-element');
-
-            cardElement.on('change', function(event) {
-                const displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
-                    document.getElementById('pay-btn').disabled = true;
-                } else {
-                    displayError.textContent = '';
-                    document.getElementById('pay-btn').disabled = false;
-                }
-            });
-
-            document.getElementById('payment-form').addEventListener('submit', handlePayment);
+    function renderSlots(slots) {
+      const grid = document.getElementById('time-grid');
+      grid.innerHTML = '';
+      slots.forEach((slot) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'time-slot';
+        btn.dataset.start = slot.start_time;
+        btn.dataset.provider = slot.provider_id;
+        btn.innerHTML = `<span>${formatTime(slot.start_time)}</span><span class="time-provider">${slot.provider_name}</span>`;
+        if (state.selectedSlot && state.selectedSlot.start_time === slot.start_time && state.selectedSlot.provider_id === slot.provider_id) {
+          btn.classList.add('selected');
         }
+        btn.addEventListener('click', () => selectSlot(slot));
+        grid.appendChild(btn);
+      });
+      if (!slots.length) {
+        grid.innerHTML = '<div class="empty-state">No available times on this day.</div>';
+      }
+    }
 
-        async function loadServices() {
-            try {
-                debugLog('Loading services...');
-                const response = await fetch(`${API}/services`);
-                const payload = await response.json();
-                const services = Array.isArray(payload) ? payload : (Array.isArray(payload?.services) ? payload.services : []);
-                const normalized = services.map(service => ({
-                    service_id: service.service_id || service.id || service.pk || '',
-                    name: service.name || service.title || 'Service',
-                    price_cents: typeof service.price_cents === 'number' ? service.price_cents : (service.price && typeof service.price.amount === 'number' ? service.price.amount : 0),
-                    description: service.description || '',
-                    duration_min: typeof service.duration_min === 'number' ? service.duration_min : (typeof service.duration === 'number' ? service.duration : '')
-                })).filter(service => service.service_id);
+    function selectSlot(slot) {
+      state.selectedSlot = slot;
+      document.querySelectorAll('.time-slot').forEach((node) => {
+        const matches = node.dataset.start === slot.start_time && node.dataset.provider === slot.provider_id;
+        node.classList.toggle('selected', matches);
+      });
+      showSection('patient');
+    }
 
-                debugLog('Services response', { status: response.status, services: normalized });
-                
-                if (response.ok) {
-                    availableServices = normalized;
-                    const select = document.getElementById('service-select');
-                    select.innerHTML = '<option value="">Choose a service...</option>';
-                    normalized.forEach(s => {
-                        const opt = document.createElement('option');
-                        opt.value = s.service_id;
-                        opt.textContent = `${s.name} - $${(s.price_cents/100).toFixed(0)}`;
-                        opt.setAttribute('data-name', s.name);
-                        opt.setAttribute('data-price', s.price_cents);
-                        opt.setAttribute('data-desc', s.description);
-                        opt.setAttribute('data-duration', s.duration_min);
-                        select.appendChild(opt);
-                    });
-                    debugLog('Services loaded successfully');
-                } else {
-                    showError('Failed to load services');
-                }
-            } catch (error) { 
-                debugLog('Error loading services', error);
-                showError('Error loading services: ' + error.message); 
-            }
+    function onServiceChange(event) {
+      const value = event.target.value;
+      if (!value) {
+        resetToService();
+        return;
+      }
+      state.selectedServiceId = value;
+      state.selectedSlot = null;
+      state.selectedDate = null;
+      showServiceDetails(value);
+      markAvailability();
+      document.getElementById('schedule-card').style.display = 'block';
+      showSection('schedule');
+    }
+
+    function showServiceDetails(serviceId) {
+      const service = state.services.find((item) => item.id === serviceId);
+      if (!service) return;
+      const meta = document.getElementById('service-meta');
+      meta.innerHTML = `
+        <div><strong>Duration</strong><br>${service.duration_min} minutes</div>
+        <div><strong>Price</strong><br>${formatCurrency(service.price.amount, service.price.currency)}</div>
+        <div><strong>Buffers</strong><br>${service.buffer_before_min || 0} min prep · ${service.buffer_after_min || 0} min wrap</div>
+      `;
+      document.getElementById('service-description').textContent = service.description || '';
+      document.getElementById('service-details').style.display = 'block';
+    }
+
+    function resetToService() {
+      state.selectedServiceId = null;
+      state.selectedDate = null;
+      state.selectedSlot = null;
+      document.getElementById('service-select').value = '';
+      document.getElementById('service-details').style.display = 'none';
+      document.getElementById('times-container').style.display = 'none';
+      document.getElementById('no-slots').style.display = 'none';
+      showSection('service');
+    }
+
+    function resetAll() {
+      state.selectedServiceId = null;
+      state.selectedDate = null;
+      state.selectedSlot = null;
+      state.latestAppointment = null;
+      document.getElementById('patient-form').reset();
+      toggleConfirmButton();
+      resetToService();
+      setAlert('');
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+      if (!state.selectedSlot || !state.selectedServiceId) return;
+      const fullName = document.getElementById('patient-name').value.trim();
+      const email = document.getElementById('patient-email').value.trim();
+      const mobile = document.getElementById('patient-phone').value.trim();
+      const consent = document.getElementById('sms-consent').checked;
+      if (!consent) {
+        setAlert('Please accept the SMS consent to continue.', 'error');
+        return;
+      }
+      const service = state.services.find((item) => item.id === state.selectedServiceId);
+      const payload = {
+        service_id: service.id,
+        service_name: service.name,
+        provider_id: state.selectedSlot.provider_id,
+        provider_name: state.selectedSlot.provider_name,
+        start_time: state.selectedSlot.start_time,
+        end_time: state.selectedSlot.end_time,
+        patient_name: fullName,
+        patient_email: email,
+        patient_mobile: mobile,
+        text_consent: true,
+        created_by: 'patient',
+        payment_amount_cents: service.price.amount,
+        payment_currency: service.price.currency,
+        timezone: state.timezone
+      };
+      submitAppointment(payload);
+    }
+
+    async function submitAppointment(payload) {
+      const button = document.getElementById('confirm-button');
+      button.disabled = true;
+      button.textContent = 'Booking...';
+      setAlert('');
+      try {
+        const res = await fetch(`${state.apiBase}/appointments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(body?.error || 'Appointment could not be created');
         }
+        state.latestAppointment = body;
+        state.appointments.push(normalizeAppointmentRecord(body));
+        showConfirmation(body);
+        showSection('confirmation');
+      } catch (error) {
+        console.error('create appointment failed', error);
+        setAlert(error.message || 'Could not book the appointment. Please try again.', 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Confirm & Pay';
+      }
+    }
 
-        function setupEvents() {
-            document.getElementById('service-select').addEventListener('change', function() {
-                if (this.value) {
-                    selectService(this.value);
-                } else { 
-                    document.getElementById('service-details').style.display = 'none'; 
-                    document.getElementById('booking-section').style.display = 'none'; 
-                    document.getElementById('back-btn').style.display = 'none';
-                }
-            });
-            
-            document.getElementById('prev-month').addEventListener('click', () => { 
-                currentDate.setMonth(currentDate.getMonth() - 1); 
-                renderCalendar(); 
-                if (currentServiceId) loadAvailableDates(); 
-            });
-            
-            document.getElementById('next-month').addEventListener('click', () => { 
-                currentDate.setMonth(currentDate.getMonth() + 1); 
-                renderCalendar(); 
-                if (currentServiceId) loadAvailableDates(); 
-            });
-            
-            document.getElementById('booking-form').addEventListener('submit', handleBookingSubmit);
-        }
+    function showConfirmation(appointment) {
+      const service = state.services.find((item) => item.id === appointment.service_id);
+      const policy = service?.cancellation_policy || 'Please provide 24 hours notice to cancel.';
+      const summary = document.getElementById('confirmation-summary');
+      summary.textContent = `We sent your confirmation and Zoom link to ${appointment.patient_email} and ${formatPhone(appointment.patient_mobile)}.`;
+      document.getElementById('detail-service').textContent = appointment.service_name;
+      document.getElementById('detail-provider').textContent = appointment.provider_name;
+      document.getElementById('detail-datetime').textContent = formatLongDate(appointment.start_time, appointment.end_time, state.timezone);
+      document.getElementById('detail-zoom').href = appointment.zoom_join_url;
+      document.getElementById('detail-policy').textContent = policy;
+      updateCalendarLink(appointment);
+    }
 
-        function selectService(serviceId) {
-            debugLog('Service selected', serviceId);
-            currentServiceId = serviceId.replace('#', '%23');
-            const select = document.getElementById('service-select');
-            const opt = select.options[select.selectedIndex];
-            
-            // Store service data for later use
-            currentServiceData = {
-                id: serviceId,
-                name: opt.getAttribute('data-name'),
-                price_cents: parseInt(opt.getAttribute('data-price')),
-                description: opt.getAttribute('data-desc'),
-                duration_min: parseInt(opt.getAttribute('data-duration'))
-            };
-            
-            document.getElementById('service-name').textContent = currentServiceData.name;
-            document.getElementById('service-price').textContent = '$' + (currentServiceData.price_cents / 100).toFixed(0);
-            document.getElementById('service-description').textContent = currentServiceData.description;
-            document.getElementById('service-details').style.display = 'block';
-            document.getElementById('booking-section').style.display = 'block';
-            document.getElementById('back-btn').style.display = 'inline-block';
-            
-            clearSelection(); 
-            loadAvailableDates();
-            updateStep(2);
-        }
+    async function resendConfirmation() {
+      if (!state.latestAppointment) return;
+      try {
+        const res = await fetch(`${state.apiBase}/appointments/${encodeURIComponent(state.latestAppointment.id)}/notifications/resend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channels: ['email', 'text'], type: 'confirmation', recipient: 'patient', actor: 'patient' })
+        });
+        if (!res.ok) throw new Error('Unable to resend confirmations');
+        setAlert('Confirmation email and text were re-sent.', 'success');
+      } catch (error) {
+        console.error('resend failed', error);
+        setAlert('Could not resend confirmations. Please try again later or contact support.', 'error');
+      }
+    }
 
-        function renderCalendar() {
-            const grid = document.getElementById('calendar-grid');
-            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('month-year').textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
-            
-            const headers = grid.querySelectorAll('.day-header');
-            grid.innerHTML = ''; 
-            headers.forEach(h => grid.appendChild(h));
-            
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const firstDay = new Date(year, month, 1);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
-            
-            for (let i = 0; i < 42; i++) {
-                const date = new Date(startDate); 
-                date.setDate(startDate.getDate() + i);
-                const day = document.createElement('div');
-                day.className = 'calendar-day'; 
-                day.textContent = date.getDate();
-                const dateStr = date.toISOString().split('T')[0];
-                const isCurrentMonth = date.getMonth() === month;
-                const isPast = date < new Date().setHours(0, 0, 0, 0);
-                
-                if (!isCurrentMonth) {
-                    day.classList.add('other-month');
-                } else if (isPast) {
-                    day.classList.add('unavailable');
-                } else { 
-                    day.addEventListener('click', () => selectDate(dateStr)); 
-                    day.setAttribute('data-date', dateStr); 
-                }
-                grid.appendChild(day);
-            }
-        }
+    function updateCalendarLink(appointment) {
+      const link = document.getElementById('add-calendar');
+      const ics = buildIcs(appointment);
+      link.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+    }
 
-        async function loadAvailableDates() {
-            if (!currentServiceId) return;
-            debugLog('Loading available dates for service', currentServiceId);
-            
-            availableDates.clear();
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const dateStr = date.toISOString().split('T')[0];
-                if (date < new Date().setHours(0, 0, 0, 0)) continue;
-                
-                try {
-                    const response = await fetch(`${API}/slots?service_id=${currentServiceId}&date=${dateStr}`);
-                    const result = await response.json();
-                    if (response.ok && result.slots && result.slots.length > 0) {
-                        availableDates.add(dateStr);
-                    }
-                } catch (error) { 
-                    debugLog(`Error checking ${dateStr}`, error); 
-                }
-            }
-            updateCalendarAvailability();
-        }
+    function buildIcs(appointment) {
+      const start = new Date(appointment.start_time);
+      const end = new Date(appointment.end_time);
+      const format = (date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+      const service = appointment.service_name || 'Telehealth Appointment';
+      const description = `Telehealth visit with ${appointment.provider_name}. Join link: ${appointment.zoom_join_url}`;
+      return `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Edina Clinic//Telehealth//EN\nBEGIN:VEVENT\nUID:${appointment.id}@edinaclinic\nDTSTAMP:${format(new Date())}\nDTSTART:${format(start)}\nDTEND:${format(end)}\nSUMMARY:${escapeIcs(service)}\nDESCRIPTION:${escapeIcs(description)}\nLOCATION:${escapeIcs(appointment.zoom_join_url)}\nEND:VEVENT\nEND:VCALENDAR`;
+    }
 
-        function updateCalendarAvailability() {
-            document.querySelectorAll('.calendar-day[data-date]').forEach(el => {
-                const dateStr = el.getAttribute('data-date');
-                if (availableDates.has(dateStr)) { 
-                    el.classList.add('available'); 
-                    el.classList.remove('unavailable'); 
-                } else { 
-                    el.classList.add('unavailable'); 
-                    el.classList.remove('available'); 
-                }
-            });
-        }
+    function escapeIcs(value) {
+      return String(value || '').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
+    }
 
-        async function selectDate(dateStr) {
-            if (!availableDates.has(dateStr)) { 
-                showError('No appointments available on this date.'); 
-                return; 
-            }
-            
-            debugLog('Date selected', dateStr);
-            document.querySelectorAll('.calendar-day').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`[data-date="${dateStr}"]`).classList.add('selected');
-            selectedDate = dateStr; 
-            selectedTime = null; 
-            selectedProvider = null;
-            selectedProviderName = null;
-            
-            const container = document.getElementById('times-container');
-            const grid = document.getElementById('times-grid');
-            container.style.display = 'block'; 
-            grid.innerHTML = '<div>Loading...</div>';
-            
-            try {
-                const response = await fetch(`${API}/slots?service_id=${currentServiceId}&date=${dateStr}`);
-                const result = await response.json();
-                debugLog('Slots response', result);
-                
-                if (response.ok && result.slots && result.slots.length > 0) {
-                    displayTimeSlots(result.slots, result.providers || []);
-                } else {
-                    grid.innerHTML = '<div>No times available</div>';
-                }
-            } catch (error) { 
-                debugLog('Error loading slots', error);
-                grid.innerHTML = '<div>Error loading times</div>'; 
-            }
-        }
+    function normalizeService(raw) {
+      if (!raw || !raw.id) return null;
+      return {
+        id: raw.id,
+        name: raw.name || 'Service',
+        description: raw.description || '',
+        duration_min: Number(raw.duration_min) || 30,
+        buffer_before_min: Number(raw.buffer_before_min) || 0,
+        buffer_after_min: Number(raw.buffer_after_min) || 0,
+        price: {
+          amount: Number(raw.price?.amount) || 0,
+          currency: raw.price?.currency || 'usd'
+        },
+        cancellation_policy: raw.cancellation_policy || ''
+      };
+    }
 
-        function displayTimeSlots(slots, providers) {
-            const grid = document.getElementById('times-grid'); 
-            grid.innerHTML = '';
-            const slotMap = new Map();
-            
-            slots.forEach(slot => {
-                const utc = new Date(slot);
-                const local = utc.toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit', 
-                    hour12: true, 
-                    timeZone: 'America/Chicago' 
-                });
-                if (!slotMap.has(local)) {
-                    slotMap.set(local, { 
-                        utcTime: slot, 
-                        localTime: local, 
-                        providers: providers.map(p => ({ 
-                            provider_id: p.provider_id, 
-                            provider_name: p.provider_name, 
-                            priority: p.priority 
-                        })) 
-                    });
-                }
-            });
-            
-            let firstSlot = true;
-            Array.from(slotMap.values()).sort((a, b) => new Date(a.utcTime) - new Date(b.utcTime)).forEach(data => {
-                data.providers.sort((a, b) => a.priority - b.priority);
-                const slot = document.createElement('div'); 
-                slot.className = 'time-slot';
-                
-                const defaultProvider = data.providers[0];
-                const selectOptions = data.providers.map(p => 
-                    `<option value="${p.provider_id}" data-name="${p.provider_name}" ${p.provider_id === defaultProvider.provider_id ? 'selected' : ''}>${p.provider_name}</option>`
-                ).join('');
-                
-                slot.innerHTML = `<div class="time-text">${data.localTime}</div><select class="provider-dropdown" data-time="${data.utcTime}">${selectOptions}</select>`;
-                grid.appendChild(slot);
-                
-                if (firstSlot && defaultProvider) {
-                    slot.classList.add('selected');
-                    selectedTime = data.utcTime;
-                    selectedProvider = defaultProvider.provider_id;
-                    selectedProviderName = defaultProvider.provider_name;
-                    document.getElementById('patient-info').style.display = 'block';
-                    document.getElementById('book-btn').disabled = false;
-                    document.getElementById('book-btn').textContent = `Continue to Payment`;
-                    firstSlot = false;
-                }
-            });
-            
-            document.querySelectorAll('.provider-dropdown').forEach(dropdown => {
-                dropdown.addEventListener('change', e => {
-                    const time = dropdown.getAttribute('data-time');
-                    const providerId = dropdown.value;
-                    const providerName = dropdown.options[dropdown.selectedIndex].getAttribute('data-name');
-                    selectProvider(time, providerId, providerName, dropdown);
-                });
-            });
-        }
+    function normalizeProvider(raw) {
+      if (!raw) return null;
+      const providerId = raw.provider_id || raw.id;
+      if (!providerId) return null;
+      return {
+        provider_id: providerId,
+        provider_name: raw.provider_name || raw.name || 'Provider',
+        availability: Array.isArray(raw.availability) ? raw.availability : [],
+        services: Array.isArray(raw.services) ? raw.services : []
+      };
+    }
 
-        function selectProvider(time, providerId, providerName, dropdown) {
-            document.querySelectorAll('.provider-dropdown').forEach(el => { 
-                if (el !== dropdown) { 
-                    el.value = ''; 
-                    el.closest('.time-slot').classList.remove('selected'); 
-                } 
-            });
-            document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
-            
-            dropdown.closest('.time-slot').classList.add('selected');
-            selectedTime = time; 
-            selectedProvider = providerId;
-            selectedProviderName = providerName;
-            document.getElementById('patient-info').style.display = 'block';
-            document.getElementById('book-btn').disabled = false;
-            document.getElementById('book-btn').textContent = `Continue to Payment`;
-            
-            debugLog('Provider selected', { time, providerId, providerName });
-        }
+    function normalizeAppointmentRecord(raw) {
+      if (!raw || !raw.id) return null;
+      return {
+        id: raw.id,
+        provider_id: raw.provider_id,
+        start_time: raw.start_time,
+        end_time: raw.end_time,
+        status: raw.status
+      };
+    }
 
-        function clearSelection() {
-            selectedTime = null; 
-            selectedProvider = null;
-            selectedProviderName = null;
-            document.getElementById('patient-info').style.display = 'none';
-            document.getElementById('book-btn').disabled = true;
-            document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
-        }
+    function providerSupportsService(provider, serviceId) {
+      if (!provider || !serviceId) return false;
+      const tokens = new Set((provider.services || []).map((svc) => String(svc).toUpperCase()));
+      return tokens.has(serviceId.toUpperCase()) || tokens.has(serviceId.replace('SERVICE#', '').toUpperCase());
+    }
 
-        async function handleBookingSubmit(e) {
-            e.preventDefault();
-            const email = document.getElementById('patient-email').value;
-            
-            if (!selectedDate || !selectedTime || !selectedProvider || !email) { 
-                showError('Please complete all fields.'); 
-                return; 
-            }
+    function hasConflict(providerId, start, end, bufferBefore, bufferAfter) {
+      const startMs = start.getTime() - (bufferBefore || 0) * 60000;
+      const endMs = end.getTime() + (bufferAfter || 0) * 60000;
+      return state.appointments.some((appt) => {
+        if (appt.provider_id !== providerId) return false;
+        if (appt.status === 'canceled') return false;
+        const apptStart = new Date(appt.start_time).getTime();
+        const apptEnd = new Date(appt.end_time).getTime();
+        return apptStart < endMs && apptEnd > startMs;
+      });
+    }
 
-            // Store appointment data for payment
-            appointmentData = {
-                service_id: currentServiceData.id,
-                start_iso: selectedTime,
-                patient_email: email,
-                provider_id: selectedProvider
-            };
+    function parseTimeToMinutes(value) {
+      if (!value) return null;
+      const parts = String(value).split(':');
+      if (parts.length < 2) return null;
+      const hours = Number(parts[0]);
+      const minutes = Number(parts[1]);
+      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+      return hours * 60 + minutes;
+    }
 
-            // Show payment section
-            document.getElementById('booking-section').style.display = 'none';
-            document.getElementById('payment-section').style.display = 'block';
-            
-            // Populate summary
-            document.getElementById('summary-service').textContent = currentServiceData.name;
-            document.getElementById('summary-datetime').textContent = new Date(selectedTime).toLocaleString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long', 
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                timeZone: 'America/Chicago'
-            });
-            document.getElementById('summary-provider').textContent = selectedProviderName;
-            document.getElementById('summary-total').textContent = `$${(currentServiceData.price_cents / 100).toFixed(2)}`;
-            
-            updateStep(3);
+    function formatDateKey(date) {
+      return date.toISOString().split('T')[0];
+    }
 
-            // Create payment intent
-            try {
-                debugLog('Creating payment intent', appointmentData);
-                const response = await fetch(`${API}/create-payment-intent`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(appointmentData)
-                });
+    function isBeforeToday(date) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      return date < today;
+    }
 
-                const result = await response.json();
-                debugLog('Payment intent response', result);
+    function formatTime(iso) {
+      const date = new Date(iso);
+      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
 
-                if (response.ok) {
-                    paymentIntent = result;
-                    document.getElementById('pay-btn').disabled = false;
-                } else {
-                    showError('Failed to prepare payment: ' + result.error);
-                }
-            } catch (error) {
-                debugLog('Payment intent error', error);
-                showError('Payment preparation failed: ' + error.message);
-            }
-        }
+    function formatLongDate(startIso, endIso, tz) {
+      const start = new Date(startIso);
+      return start.toLocaleString([], { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: tz });
+    }
 
-        async function handlePayment(e) {
-            e.preventDefault();
-            
-            if (!paymentIntent) {
-                showError('Payment not ready. Please try again.');
-                return;
-            }
+    function formatCurrency(amount, currency) {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'usd' }).format((amount || 0) / 100);
+    }
 
-            const submitButton = document.getElementById('pay-btn');
-            const buttonText = document.getElementById('button-text');
-            
-            submitButton.disabled = true;
-            buttonText.textContent = 'Processing...';
+    function formatPhone(value) {
+      if (!value) return '';
+      if (value.startsWith('+1') && value.length === 12) {
+        return `(${value.slice(2,5)}) ${value.slice(5,8)}-${value.slice(8)}`;
+      }
+      return value;
+    }
 
-            try {
-                debugLog('Confirming payment with Stripe', { clientSecret: paymentIntent.client_secret });
-                
-                const {error, paymentIntent: confirmedPayment} = await stripe.confirmCardPayment(
-                    paymentIntent.client_secret,
-                    {
-                        payment_method: {
-                            card: cardElement,
-                            billing_details: {
-                                email: appointmentData.patient_email,
-                            },
-                        }
-                    }
-                );
+    function detectApiBase() {
+      const meta = document.querySelector('meta[name="api-base"]');
+      if (meta?.content) return sanitizeBase(meta.content);
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const candidate = params.get('apiBase') || params.get('api_base');
+        if (candidate) return sanitizeBase(candidate);
+      } catch (error) {
+        console.warn('unable to parse api base from query', error);
+      }
+      if (window.API_BASE_URL) return sanitizeBase(window.API_BASE_URL);
+      return '';
+    }
 
-                if (error) {
-                    debugLog('Stripe payment error', error);
-                    showError('Payment failed: ' + error.message);
-                    submitButton.disabled = false;
-                    buttonText.textContent = 'Pay Now';
-                } else {
-                    debugLog('Payment succeeded', confirmedPayment);
-                    
-                    // Confirm with backend
-                    const confirmResponse = await fetch(`${API}/confirm-payment`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            payment_intent_id: confirmedPayment.id,
-                            appointment_id: paymentIntent.appointment_id
-                        })
-                    });
-
-                    const confirmResult = await confirmResponse.json();
-                    debugLog('Payment confirmation response', confirmResult);
-
-                    if (confirmResponse.ok) {
-                        // Show confirmation
-                        document.getElementById('payment-section').style.display = 'none';
-                        document.getElementById('confirmation-section').style.display = 'block';
-                        document.getElementById('confirmation-id').textContent = confirmResult.appointment_id;
-                        updateStep(4);
-                        showSuccess('Payment successful! Your appointment is confirmed.');
-                    } else {
-                        showError('Payment processed but confirmation failed: ' + confirmResult.error);
-                    }
-                }
-            } catch (error) {
-                debugLog('Payment processing error', error);
-                showError('Payment processing failed: ' + error.message);
-                submitButton.disabled = false;
-                buttonText.textContent = 'Pay Now';
-            }
-        }
-    </script>
+    function sanitizeBase(value) {
+      if (!value || typeof value !== 'string') return '';
+      return value.trim().replace(/\/+$/, '') || '';
+    }
+  </script>
 </body>
 </html>

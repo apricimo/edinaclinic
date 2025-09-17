@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Appointments &amp; Sales Dashboard - Edina Clinic</title>
+  <style>
+    :root {
+      --surface: #ffffff;
+      --background: #f5f7fb;
+      --border: #dde3f0;
+      --primary: #2f6fed;
+      --primary-dark: #1d4fc4;
+      --danger: #d9534f;
+      --success: #2fb36c;
+      --text: #1f2937;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; background: var(--background); color: var(--text); }
+    a { color: var(--primary); }
+    header { background: linear-gradient(120deg, var(--primary), var(--primary-dark)); color: #fff; padding: 28px 32px; box-shadow: 0 18px 45px rgba(47,111,237,0.2); }
+    header h1 { margin: 0 0 6px; font-size: clamp(26px, 4vw, 34px); }
+    header p { margin: 0; opacity: 0.85; }
+    .container { padding: 24px 24px 120px; max-width: 1240px; margin: 0 auto; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: center; }
+    .toolbar button { padding: 12px 18px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; background: var(--primary); color: #fff; box-shadow: 0 10px 28px rgba(47,111,237,0.3); }
+    .filters { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); margin-bottom: 24px; }
+    .filters label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--muted); }
+    .filters input, .filters select { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 14px; background: #fff; }
+    .summary { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); margin-bottom: 24px; }
+    .summary-card { background: var(--surface); border-radius: 16px; padding: 18px; box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08); }
+    .summary-card .label { font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .summary-card .value { font-size: 24px; font-weight: 700; margin-top: 4px; }
+    .summary-card .sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .chart { background: var(--surface); border-radius: 16px; padding: 20px; box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08); margin-bottom: 24px; }
+    .chart h3 { margin-top: 0; font-size: 16px; }
+    .chart-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .chart-bar { flex: 1; height: 10px; border-radius: 6px; background: rgba(47,111,237,0.15); position: relative; overflow: hidden; }
+    .chart-bar span { position: absolute; inset: 0; background: linear-gradient(120deg,var(--primary),var(--primary-dark)); border-radius: 6px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+    .table-wrapper { background: var(--surface); border-radius: 16px; box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 14px 16px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: rgba(47,111,237,0.08); font-weight: 600; color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.06em; }
+    tr:hover { background: rgba(47,111,237,0.06); cursor: pointer; }
+    tr.selected { background: rgba(47,111,237,0.12); }
+    .status-pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    .status-paid { background: rgba(47,179,108,0.15); color: #1c7c47; }
+    .status-canceled { background: rgba(217,83,79,0.15); color: #8d2d2b; }
+    .status-pending { background: rgba(47,111,237,0.15); color: var(--primary-dark); }
+    .status-refunded { background: rgba(128,90,213,0.15); color: #5b21b6; }
+    aside { background: var(--surface); border-radius: 16px; box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08); padding: 20px; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; }
+    aside h2 { margin-top: 0; font-size: 20px; }
+    .detail-section { margin-bottom: 22px; }
+    .detail-section h3 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.08em; }
+    .detail-grid { display: grid; gap: 10px; }
+    .detail-row { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
+    .detail-row span:first-child { color: var(--muted); font-weight: 600; }
+    .actions-panel { display: grid; gap: 10px; }
+    .actions-panel button { padding: 10px 14px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; }
+    .actions-panel button.primary { background: var(--primary); color: #fff; }
+    .actions-panel button.danger { background: rgba(217,83,79,0.12); color: #a52f2e; }
+    .actions-panel button.secondary { background: rgba(47,111,237,0.08); color: var(--primary-dark); }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .log-table th, .log-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    .log-table th { background: rgba(15,23,42,0.04); text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; color: var(--muted); }
+    .badge { padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; }
+    .badge.email { background: rgba(47,111,237,0.12); color: var(--primary-dark); }
+    .badge.text { background: rgba(47,179,108,0.12); color: #1c7c47; }
+    .badge.failed { background: rgba(217,83,79,0.12); color: #8d2d2b; }
+    .empty { text-align: center; padding: 24px; color: var(--muted); }
+    .preferences { margin-bottom: 24px; background: var(--surface); border-radius: 16px; padding: 20px; box-shadow: 0 14px 40px rgba(15,23,42,0.08); }
+    .preferences h3 { margin-top: 0; font-size: 16px; }
+    .pref-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .pref-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+    .toggle { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 13px; }
+    .toggle input { width: 20px; height: 20px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.6); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+    .modal { background: #fff; border-radius: 16px; width: min(520px, 100%); padding: 24px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); max-height: 90vh; overflow-y: auto; }
+    .modal h3 { margin-top: 0; }
+    .modal form { display: grid; gap: 14px; }
+    .modal label { font-size: 13px; font-weight: 600; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    .modal input, .modal select, .modal textarea { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 14px; }
+    .modal textarea { min-height: 90px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+    .modal-actions button { padding: 10px 16px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; }
+    .modal-actions .close { background: rgba(15,23,42,0.08); color: var(--text); }
+    .modal-actions .submit { background: var(--primary); color: #fff; }
+    .tag { display: inline-flex; padding: 4px 8px; border-radius: 999px; background: rgba(47,111,237,0.12); color: var(--primary-dark); font-size: 12px; font-weight: 600; text-transform: uppercase; }
+    @media (max-width: 1024px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; max-height: none; }
+    }
+    @media (max-width: 640px) {
+      .container { padding: 18px; }
+      header { padding: 24px 20px; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .toolbar button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Appointments &amp; Sales</h1>
+    <p>Monitor scheduled visits, resend confirmations, and reconcile sales in real time.</p>
+  </header>
+  <div class="container">
+    <div class="toolbar">
+      <button id="create-appointment">+ Create Appointment</button>
+      <button id="refresh-data" style="background: rgba(15,23,42,0.08); color: var(--text); box-shadow: none;">Refresh</button>
+      <div style="flex:1; min-width:200px;">
+        <input type="search" id="search-input" placeholder="Search patient, provider, or ID" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border);" />
+      </div>
+    </div>
+
+    <div class="filters">
+      <label>Start
+        <input type="date" id="filter-start" />
+      </label>
+      <label>End
+        <input type="date" id="filter-end" />
+      </label>
+      <label>Service
+        <select id="filter-service">
+          <option value="">All services</option>
+        </select>
+      </label>
+      <label>Provider
+        <select id="filter-provider">
+          <option value="">All providers</option>
+        </select>
+      </label>
+      <label>Payment Status
+        <select id="filter-payment">
+          <option value="">All payments</option>
+          <option value="succeeded">Succeeded</option>
+          <option value="initiated">Initiated</option>
+          <option value="failed">Failed</option>
+          <option value="partially_refunded">Partial refund</option>
+          <option value="refunded">Refunded</option>
+        </select>
+      </label>
+      <label>Appointment Status
+        <select id="filter-status">
+          <option value="">All statuses</option>
+          <option value="paid">Paid</option>
+          <option value="pending_payment">Pending payment</option>
+          <option value="completed">Completed</option>
+          <option value="no_show">No show</option>
+          <option value="canceled">Canceled</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <div class="chart" id="chart"></div>
+
+    <div class="preferences">
+      <h3>Reminder Preferences</h3>
+      <div class="pref-grid" id="preference-grid"></div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Appointment</th>
+                <th>Service</th>
+                <th>Start</th>
+                <th>Provider</th>
+                <th>Patient</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="appointments-table"></tbody>
+          </table>
+        </div>
+      </div>
+      <aside id="detail-panel">
+        <h2>Appointment Details</h2>
+        <div class="empty" id="detail-empty">Select an appointment to view its details.</div>
+        <div id="detail-content" style="display:none;"></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div id="modal-content"></div>
+      <div class="modal-actions">
+        <button class="close" type="button" id="modal-cancel">Cancel</button>
+        <button class="submit" type="button" id="modal-submit">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      apiBase: detectApiBase(),
+      services: [],
+      providers: [],
+      appointments: [],
+      preferences: {},
+      filtered: [],
+      selectedId: null,
+      filters: {},
+      summary: null,
+      daily: []
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+    });
+
+    async function init() {
+      await loadAll();
+      initializeFilters();
+      applyFilters();
+      renderAll();
+      registerListeners();
+    }
+
+    function registerListeners() {
+      document.getElementById('refresh-data').addEventListener('click', refresh);
+      document.getElementById('create-appointment').addEventListener('click', openCreateModal);
+      document.getElementById('search-input').addEventListener('input', () => { state.filters.search = document.getElementById('search-input').value.trim(); applyFilters(); renderAll(); });
+      ['filter-start','filter-end','filter-service','filter-provider','filter-payment','filter-status'].forEach((id) => {
+        document.getElementById(id).addEventListener('change', () => {
+          state.filters.start = document.getElementById('filter-start').value || null;
+          state.filters.end = document.getElementById('filter-end').value || null;
+          state.filters.service = document.getElementById('filter-service').value || '';
+          state.filters.provider = document.getElementById('filter-provider').value || '';
+          state.filters.payment = document.getElementById('filter-payment').value || '';
+          state.filters.status = document.getElementById('filter-status').value || '';
+          applyFilters();
+          renderAll();
+        });
+      });
+      document.getElementById('modal-cancel').addEventListener('click', closeModal);
+      document.getElementById('modal-overlay').addEventListener('click', (event) => {
+        if (event.target.id === 'modal-overlay') closeModal();
+      });
+    }
+
+    async function refresh() {
+      await loadAppointments();
+      applyFilters();
+      renderAll();
+    }
+
+    async function loadAll() {
+      await Promise.all([loadServices(), loadProviders(), loadPreferences(), loadAppointments()]);
+    }
+
+    async function loadServices() {
+      const res = await fetch(`${state.apiBase}/services`, { cache: 'no-store' });
+      const payload = await res.json().catch(() => ({}));
+      const list = Array.isArray(payload) ? payload : Array.isArray(payload.services) ? payload.services : [];
+      state.services = list.map(normalizeService).filter(Boolean);
+    }
+
+    async function loadProviders() {
+      const res = await fetch(`${state.apiBase}/providers`, { cache: 'no-store' });
+      const payload = await res.json().catch(() => ({}));
+      const list = Array.isArray(payload) ? payload : Array.isArray(payload.providers) ? payload.providers : [];
+      state.providers = list.map(normalizeProvider).filter(Boolean);
+    }
+
+    async function loadPreferences() {
+      try {
+        const res = await fetch(`${state.apiBase}/services/preferences`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        state.preferences = data || {};
+      } catch (error) {
+        console.warn('preferences unavailable', error);
+      }
+    }
+
+    async function loadAppointments() {
+      const url = new URL(`${state.apiBase}/appointments`);
+      const start = new Date(); start.setDate(start.getDate() - 30);
+      const end = new Date(); end.setDate(end.getDate() + 60);
+      url.searchParams.set('start', start.toISOString());
+      url.searchParams.set('end', end.toISOString());
+      const res = await fetch(url, { cache: 'no-store' });
+      const payload = await res.json().catch(() => ({}));
+      state.appointments = Array.isArray(payload?.appointments) ? payload.appointments : [];
+      state.summary = payload?.summary || null;
+      state.daily = Array.isArray(state.summary?.daily) ? state.summary.daily : [];
+    }
+
+    function initializeFilters() {
+      const startInput = document.getElementById('filter-start');
+      const endInput = document.getElementById('filter-end');
+      const today = new Date();
+      const start = new Date(); start.setDate(today.getDate() - 30);
+      const toDateInput = (date) => date.toISOString().split('T')[0];
+      startInput.value = toDateInput(start);
+      endInput.value = toDateInput(today);
+      state.filters.start = startInput.value;
+      state.filters.end = endInput.value;
+
+      const serviceSelect = document.getElementById('filter-service');
+      serviceSelect.innerHTML = '<option value="">All services</option>' + state.services.map((svc) => `<option value="${svc.id}">${svc.name}</option>`).join('');
+      const providerSelect = document.getElementById('filter-provider');
+      providerSelect.innerHTML = '<option value="">All providers</option>' + state.providers.map((pro) => `<option value="${pro.provider_id}">${pro.provider_name}</option>`).join('');
+    }
+
+    function applyFilters() {
+      const search = (state.filters.search || '').toLowerCase();
+      const start = state.filters.start ? new Date(state.filters.start) : null;
+      const end = state.filters.end ? new Date(state.filters.end) : null;
+      if (end) end.setHours(23,59,59,999);
+      state.filtered = state.appointments.filter((appt) => {
+        if (start && new Date(appt.start_time) < start) return false;
+        if (end && new Date(appt.start_time) > end) return false;
+        if (state.filters.service && appt.service_id !== state.filters.service) return false;
+        if (state.filters.provider && appt.provider_id !== state.filters.provider) return false;
+        if (state.filters.payment && appt.payment_status !== state.filters.payment) return false;
+        if (state.filters.status && appt.status !== state.filters.status) return false;
+        if (search) {
+          const haystack = [appt.id, appt.patient_name, appt.patient_email, appt.patient_mobile, appt.provider_name].filter(Boolean).join(' ').toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+        return true;
+      }).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderChart();
+      renderPreferences();
+      renderTable();
+      renderDetail();
+    }
+
+    function renderSummary() {
+      const container = document.getElementById('summary');
+      if (!state.summary) {
+        container.innerHTML = '';
+        return;
+      }
+      const gross = formatCurrency(state.summary.gross_cents, 'usd');
+      const refunds = formatCurrency(state.summary.refunds_cents, 'usd');
+      const net = formatCurrency(state.summary.net_cents, 'usd');
+      const avg = formatCurrency(state.summary.average_order_value_cents, 'usd');
+      container.innerHTML = `
+        <div class="summary-card">
+          <div class="label">Gross Sales</div>
+          <div class="value">${gross}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Refunds</div>
+          <div class="value">${refunds}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Net Sales</div>
+          <div class="value">${net}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Paid Appointments</div>
+          <div class="value">${state.summary.paid_appointments || 0}</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Average Order Value</div>
+          <div class="value">${avg}</div>
+        </div>`;
+    }
+
+    function renderChart() {
+      const container = document.getElementById('chart');
+      if (!state.daily.length) {
+        container.innerHTML = '<h3>Daily Net Sales</h3><div class="empty">No data for the selected range.</div>';
+        return;
+      }
+      const max = Math.max(...state.daily.map((row) => row.net_cents));
+      container.innerHTML = '<h3>Daily Net Sales</h3>' + state.daily.map((row) => {
+        const width = max > 0 ? Math.max(4, Math.round((row.net_cents / max) * 100)) : 4;
+        return `<div class="chart-row"><span style="width:90px; font-size:12px; color:var(--muted);">${row.date}</span><div class="chart-bar"><span style="width:${width}%"></span></div><span style="font-size:12px; font-weight:600;">${formatCurrency(row.net_cents, 'usd')}</span></div>`;
+      }).join('');
+    }
+
+    function renderPreferences() {
+      const grid = document.getElementById('preference-grid');
+      grid.innerHTML = state.services.map((svc) => {
+        const pref = state.preferences[svc.id] || { reminder_one_day: true, reminder_one_hour: true };
+        return `<div class="pref-card">
+          <div style="font-weight:600;">${svc.name}</div>
+          <div class="toggle"><span>24 hour reminder</span><input type="checkbox" data-service="${svc.id}" data-field="reminder_one_day" ${pref.reminder_one_day !== false ? 'checked' : ''}></div>
+          <div class="toggle"><span>1 hour reminder</span><input type="checkbox" data-service="${svc.id}" data-field="reminder_one_hour" ${pref.reminder_one_hour !== false ? 'checked' : ''}></div>
+        </div>`;
+      }).join('');
+      grid.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.addEventListener('change', (event) => updatePreference(event.target.dataset.service, event.target.dataset.field, event.target.checked));
+      });
+    }
+
+    async function updatePreference(serviceId, field, enabled) {
+      const payload = { [field]: enabled };
+      try {
+        await fetch(`${state.apiBase}/services/preferences/${encodeURIComponent(serviceId)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        state.preferences[serviceId] = { ...state.preferences[serviceId], ...payload };
+      } catch (error) {
+        console.error('preference update failed', error);
+      }
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('appointments-table');
+      if (!state.filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">No appointments match the current filters.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = state.filtered.map((appt) => {
+        const statusClass = getStatusClass(appt.status);
+        return `<tr data-id="${appt.id}" class="${state.selectedId === appt.id ? 'selected' : ''}">
+          <td>${appt.id}</td>
+          <td>${appt.service_name || ''}</td>
+          <td>${formatDateTime(appt.start_time)}</td>
+          <td>${appt.provider_name || ''}</td>
+          <td>${appt.patient_name || ''}</td>
+          <td>${formatCurrency(appt.payment_amount_cents || 0, appt.payment_currency || 'usd')}<div style="font-size:12px;color:var(--muted);">${appt.payment_status || ''}</div></td>
+          <td><span class="status-pill ${statusClass}">${appt.status}</span></td>
+        </tr>`;
+      }).join('');
+      tbody.querySelectorAll('tr').forEach((row) => {
+        row.addEventListener('click', () => {
+          state.selectedId = row.dataset.id;
+          renderTable();
+          renderDetail();
+        });
+      });
+    }
+
+    function renderDetail() {
+      const container = document.getElementById('detail-content');
+      const empty = document.getElementById('detail-empty');
+      const appt = state.appointments.find((item) => item.id === state.selectedId);
+      if (!appt) {
+        container.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      container.style.display = 'block';
+      container.innerHTML = `
+        <div class="detail-section">
+          <h3>Identifiers</h3>
+          <div class="detail-grid">
+            <div class="detail-row"><span>Appointment ID</span><span>${appt.id}</span></div>
+            <div class="detail-row"><span>Patient</span><span>${appt.patient_name || ''} <br><small>${appt.patient_email || ''}</small></span></div>
+            <div class="detail-row"><span>Mobile</span><span>${appt.patient_mobile || ''}</span></div>
+            <div class="detail-row"><span>Provider</span><span>${appt.provider_name || ''}</span></div>
+            <div class="detail-row"><span>Start</span><span>${formatDateTime(appt.start_time)}</span></div>
+            <div class="detail-row"><span>Status</span><span class="status-pill ${getStatusClass(appt.status)}">${appt.status}</span></div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h3>Payment</h3>
+          <div class="detail-grid">
+            <div class="detail-row"><span>Amount</span><span>${formatCurrency(appt.payment_amount_cents || 0, appt.payment_currency || 'usd')}</span></div>
+            <div class="detail-row"><span>Status</span><span>${appt.payment_status || ''}</span></div>
+            <div class="detail-row"><span>Refunded</span><span>${formatCurrency(appt.refunded_total_cents || 0, appt.payment_currency || 'usd')}</span></div>
+            <div class="detail-row"><span>Reference</span><span>${appt.payment_reference || ''}</span></div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h3>Zoom &amp; Links</h3>
+          <div class="detail-grid">
+            <div class="detail-row"><span>Join link</span><span><a href="${appt.zoom_join_url || '#'}" target="_blank" rel="noopener">Patient link</a></span></div>
+            <div class="detail-row"><span>Host link</span><span><a href="${appt.zoom_host_url || '#'}" target="_blank" rel="noopener">Provider link</a></span></div>
+            <div class="detail-row"><span>Policy</span><span>${appt.cancellation_policy || '24 hour notice required.'}</span></div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h3>Actions</h3>
+          <div class="actions-panel">
+            <button class="secondary" type="button" id="action-resend-email">Resend confirmation email</button>
+            <button class="secondary" type="button" id="action-resend-text">Resend confirmation text</button>
+            <button class="secondary" type="button" id="action-manual-message">Send manual message</button>
+            <button class="secondary" type="button" id="action-reschedule">Reschedule appointment</button>
+            <button class="secondary" type="button" id="action-refund">Issue refund</button>
+            <button class="danger" type="button" id="action-cancel">Cancel appointment</button>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h3>Notification History</h3>
+          ${renderNotificationTable(appt.notification_history || [])}
+        </div>
+        <div class="detail-section">
+          <h3>Audit Trail</h3>
+          ${renderAuditTable(appt.audit_trail || [])}
+        </div>`;
+      document.getElementById('action-resend-email').addEventListener('click', () => resend(appt.id, ['email']));
+      document.getElementById('action-resend-text').addEventListener('click', () => resend(appt.id, ['text']));
+      document.getElementById('action-manual-message').addEventListener('click', () => openManualMessage(appt));
+      document.getElementById('action-reschedule').addEventListener('click', () => openRescheduleModal(appt));
+      document.getElementById('action-refund').addEventListener('click', () => openRefundModal(appt));
+      document.getElementById('action-cancel').addEventListener('click', () => openCancelModal(appt));
+    }
+
+    function renderNotificationTable(log) {
+      if (!log.length) return '<div class="empty">No notifications logged.</div>';
+      return `<table class="log-table"><thead><tr><th>Sent</th><th>Channel</th><th>Type</th><th>Status</th><th>Message</th></tr></thead><tbody>${log.map((entry) => `<tr><td>${formatDateTime(entry.created_at)}</td><td><span class="badge ${entry.channel}">${entry.channel}</span></td><td>${entry.type}</td><td>${entry.status}${entry.error_code ? `<span class="badge failed">${entry.error_code}</span>` : ''}</td><td>${entry.message || ''}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderAuditTable(entries) {
+      if (!entries.length) return '<div class="empty">No activity recorded.</div>';
+      return `<table class="log-table"><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${entries.map((entry) => `<tr><td>${formatDateTime(entry.timestamp)}</td><td>${entry.actor}</td><td>${entry.action}</td><td>${formatDetails(entry.details)}</td></tr>`).join('')}</tbody></table>`;
+    }
+
+    function formatDetails(details) {
+      if (!details || typeof details !== 'object') return '';
+      return Object.entries(details).map(([key, value]) => `${key}: ${value}`).join(', ');
+    }
+
+    function getStatusClass(status) {
+      if (status === 'paid') return 'status-paid';
+      if (status === 'canceled') return 'status-canceled';
+      if (status === 'pending_payment') return 'status-pending';
+      if (status === 'completed') return 'status-paid';
+      return 'status-pending';
+    }
+
+    async function resend(id, channels) {
+      try {
+        await fetch(`${state.apiBase}/appointments/${encodeURIComponent(id)}/notifications/resend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channels, type: 'confirmation', recipient: 'patient', actor: 'admin' })
+        });
+        await refresh();
+      } catch (error) {
+        console.error('resend failed', error);
+      }
+    }
+
+    function openManualMessage(appt) {
+      openModal({
+        title: 'Send manual message',
+        content: `<form id="manual-form">
+          <label>Channel<select id="manual-channel"><option value="email">Email</option><option value="text">Text</option></select></label>
+          <label>Message<textarea id="manual-message" placeholder="Include Zoom link automatically?"></textarea></label>
+        </form>`,
+        async onSubmit() {
+          const channel = document.getElementById('manual-channel').value;
+          const message = document.getElementById('manual-message').value;
+          await fetch(`${state.apiBase}/appointments/${encodeURIComponent(appt.id)}/notifications`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channels: [channel], type: 'manual', message, recipient: 'patient', actor: 'admin' })
+          });
+          closeModal();
+          await refresh();
+        }
+      });
+    }
+
+    function openCancelModal(appt) {
+      openModal({
+        title: 'Cancel appointment',
+        content: `<form id="cancel-form">
+          <p style="font-size:14px;">Canceling will notify the patient and provider immediately.</p>
+          <label>Reason<textarea id="cancel-reason" placeholder="Reason for cancellation"></textarea></label>
+        </form>`,
+        async onSubmit() {
+          const reason = document.getElementById('cancel-reason').value || 'Canceled by admin';
+          await fetch(`${state.apiBase}/appointments/${encodeURIComponent(appt.id)}/cancel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason, actor: 'admin' })
+          });
+          closeModal();
+          await refresh();
+        }
+      });
+    }
+
+    function openRefundModal(appt) {
+      openModal({
+        title: 'Issue refund',
+        content: `<form id="refund-form">
+          <label>Refund amount<input type="number" id="refund-amount" value="${(appt.payment_amount_cents || 0) / 100}" step="0.01" min="0" /></label>
+          <label>Reason<textarea id="refund-reason" placeholder="Refund reason"></textarea></label>
+        </form>`,
+        async onSubmit() {
+          const amount = parseFloat(document.getElementById('refund-amount').value || '0');
+          const reason = document.getElementById('refund-reason').value || 'Refund issued';
+          await fetch(`${state.apiBase}/appointments/${encodeURIComponent(appt.id)}/refund`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ amount, reason, actor: 'admin' })
+          });
+          closeModal();
+          await refresh();
+        }
+      });
+    }
+
+    function openRescheduleModal(appt) {
+      const slots = findUpcomingSlots(appt);
+      openModal({
+        title: 'Reschedule appointment',
+        content: `<div style="display:grid; gap:10px; max-height:320px; overflow:auto;">
+          ${slots.length ? slots.map((slot) => `<button type="button" class="secondary" data-start="${slot.start_time}" data-end="${slot.end_time}">${formatDateTime(slot.start_time)} · ${slot.provider_name}</button>`).join('') : '<div class="empty">No available times found for this provider and service.</div>'}
+        </div>`,
+        hideSubmit: true,
+        setup(modal) {
+          modal.querySelectorAll('button[data-start]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const start = btn.dataset.start;
+              const end = btn.dataset.end;
+              await fetch(`${state.apiBase}/appointments/${encodeURIComponent(appt.id)}/reschedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ new_start: start, new_end: end, actor: 'admin' })
+              });
+              closeModal();
+              await refresh();
+            });
+          });
+        }
+      });
+    }
+
+    function findUpcomingSlots(appt) {
+      const service = state.services.find((svc) => svc.id === appt.service_id);
+      const provider = state.providers.find((pro) => pro.provider_id === appt.provider_id);
+      if (!service || !provider) return [];
+      const slots = [];
+      const startDate = new Date();
+      for (let offset = 0; offset < 30; offset++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + offset);
+        const dateStr = date.toISOString().split('T')[0];
+        const day = date.getDay();
+        const availability = Array.isArray(provider.availability) ? provider.availability : [];
+        availability.filter((slot) => Number(slot.day) === day).forEach((slot) => {
+          const startMinutes = parseTimeToMinutes(slot.start);
+          const endMinutes = parseTimeToMinutes(slot.end);
+          if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) return;
+          for (let minutes = startMinutes; minutes + service.duration_min <= endMinutes; minutes += service.duration_min) {
+            const startTime = new Date(date);
+            startTime.setHours(0,0,0,0);
+            startTime.setMinutes(minutes);
+            const endTime = new Date(startTime.getTime() + service.duration_min * 60000);
+            if (hasConflict(appt.id, provider.provider_id, startTime, endTime, service.buffer_before_min, service.buffer_after_min)) continue;
+            slots.push({ provider_id: provider.provider_id, provider_name: provider.provider_name, start_time: startTime.toISOString(), end_time: endTime.toISOString() });
+          }
+        });
+      }
+      return slots.slice(0, 30);
+    }
+
+    function hasConflict(ignoreId, providerId, start, end, bufferBefore, bufferAfter) {
+      const startMs = start.getTime() - (bufferBefore || 0) * 60000;
+      const endMs = end.getTime() + (bufferAfter || 0) * 60000;
+      return state.appointments.some((appt) => {
+        if (appt.id === ignoreId) return false;
+        if (appt.provider_id !== providerId) return false;
+        if (appt.status === 'canceled') return false;
+        const apptStart = new Date(appt.start_time).getTime();
+        const apptEnd = new Date(appt.end_time).getTime();
+        return apptStart < endMs && apptEnd > startMs;
+      });
+    }
+
+    function openCreateModal() {
+      openModal({
+        title: 'Create appointment',
+        content: `<form id="create-form">
+          <label>Service<select id="create-service">${state.services.map((svc) => `<option value="${svc.id}">${svc.name}</option>`).join('')}</select></label>
+          <label>Provider<select id="create-provider">${state.providers.map((pro) => `<option value="${pro.provider_id}">${pro.provider_name}</option>`).join('')}</select></label>
+          <label>Start time<input type="datetime-local" id="create-start" /></label>
+          <label>Patient name<input type="text" id="create-name" /></label>
+          <label>Patient email<input type="email" id="create-email" /></label>
+          <label>Patient mobile<input type="tel" id="create-mobile" placeholder="+1 555 123 4567" /></label>
+          <label><input type="checkbox" id="create-consent" checked /> SMS consent granted</label>
+        </form>`,
+        async onSubmit() {
+          const serviceId = document.getElementById('create-service').value;
+          const providerId = document.getElementById('create-provider').value;
+          const startLocal = document.getElementById('create-start').value;
+          const name = document.getElementById('create-name').value;
+          const email = document.getElementById('create-email').value;
+          const mobile = document.getElementById('create-mobile').value;
+          const consent = document.getElementById('create-consent').checked;
+          const service = state.services.find((svc) => svc.id === serviceId);
+          if (!startLocal || !service) return;
+          const start = new Date(startLocal);
+          const end = new Date(start.getTime() + service.duration_min * 60000);
+          await fetch(`${state.apiBase}/appointments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_id: serviceId,
+              provider_id: providerId,
+              provider_name: state.providers.find((pro) => pro.provider_id === providerId)?.provider_name,
+              service_name: service.name,
+              start_time: start.toISOString(),
+              end_time: end.toISOString(),
+              patient_name: name,
+              patient_email: email,
+              patient_mobile: mobile,
+              text_consent: consent,
+              created_by: 'admin',
+              payment_amount_cents: service.price.amount,
+              payment_currency: service.price.currency,
+              status: 'paid',
+              payment_status: 'succeeded'
+            })
+          });
+          closeModal();
+          await refresh();
+        }
+      });
+    }
+
+    function openModal({ title, content, onSubmit, hideSubmit = false, setup }) {
+      const overlay = document.getElementById('modal-overlay');
+      const contentContainer = document.getElementById('modal-content');
+      const submitButton = document.getElementById('modal-submit');
+      contentContainer.innerHTML = `<h3>${title}</h3>${content}`;
+      overlay.style.display = 'flex';
+      submitButton.style.display = hideSubmit ? 'none' : 'inline-flex';
+      submitButton.onclick = async () => {
+        if (onSubmit) await onSubmit();
+      };
+      if (setup) setup(contentContainer);
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').style.display = 'none';
+      document.getElementById('modal-submit').onclick = null;
+    }
+
+    function normalizeService(raw) {
+      if (!raw?.id) return null;
+      return {
+        id: raw.id,
+        name: raw.name || 'Service',
+        duration_min: Number(raw.duration_min) || 30,
+        buffer_before_min: Number(raw.buffer_before_min) || 0,
+        buffer_after_min: Number(raw.buffer_after_min) || 0,
+        price: { amount: Number(raw.price?.amount) || 0, currency: raw.price?.currency || 'usd' }
+      };
+    }
+
+    function normalizeProvider(raw) {
+      if (!raw?.provider_id && !raw?.id) return null;
+      return {
+        provider_id: raw.provider_id || raw.id,
+        provider_name: raw.provider_name || raw.name || 'Provider',
+        availability: Array.isArray(raw.availability) ? raw.availability : [],
+        services: Array.isArray(raw.services) ? raw.services : []
+      };
+    }
+
+    function formatDateTime(value) {
+      if (!value) return '';
+      return new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function formatCurrency(cents, currency) {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'usd' }).format((cents || 0) / 100);
+    }
+
+    function parseTimeToMinutes(value) {
+      if (!value) return null;
+      const parts = String(value).split(':');
+      if (parts.length < 2) return null;
+      const hours = Number(parts[0]);
+      const minutes = Number(parts[1]);
+      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+      return hours * 60 + minutes;
+    }
+
+    function detectApiBase() {
+      const meta = document.querySelector('meta[name="api-base"]');
+      if (meta?.content) return sanitizeBase(meta.content);
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const candidate = params.get('apiBase') || params.get('api_base');
+        if (candidate) return sanitizeBase(candidate);
+      } catch (error) {
+        console.warn('unable to parse api base', error);
+      }
+      if (window.API_BASE_URL) return sanitizeBase(window.API_BASE_URL);
+      return '';
+    }
+
+    function sanitizeBase(value) {
+      if (!value || typeof value !== 'string') return '';
+      return value.trim().replace(/\/+$/, '');
+    }
+  </script>
+</body>
+</html>

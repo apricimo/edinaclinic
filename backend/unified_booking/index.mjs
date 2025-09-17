@@ -4,21 +4,34 @@ const { send } = http;
 
 let bookingModulePromise;
 let providersModulePromise;
+let appointmentsModulePromise;
 
 export const handler = async (event) => {
   const method = event?.requestContext?.http?.method || event?.httpMethod || "GET";
   const rawPath = event?.rawPath || event?.path || "/";
 
   if (method === "OPTIONS") return send(200, { ok: true });
-  const { path: normalizedPath } = normalizePath(rawPath, ["ping", "checkout", "services", "providers"]);
+  const { path: normalizedPath } = normalizePath(rawPath, ["ping", "checkout", "services", "providers", "appointments", "slots"]);
 
   if (method === "GET" && normalizedPath === "/ping") {
     return send(200, { ok: true, func: "unified_booking", ts: new Date().toISOString() });
   }
-  if (normalizedPath.startsWith("/checkout") || normalizedPath.startsWith("/services")) {
+  if (normalizedPath.startsWith("/services/preferences")) {
+    const appointmentsHandler = await loadAppointmentsHandler();
+    const routedEvent = { ...event, rawPath: normalizedPath, path: normalizedPath };
+    return appointmentsHandler(routedEvent);
+  }
+
+  if (normalizedPath.startsWith("/checkout") || normalizedPath.startsWith("/services") && !normalizedPath.startsWith("/services/preferences")) {
     const bookingHandler = await loadBookingHandler();
     const routedEvent = { ...event, rawPath: normalizedPath, path: normalizedPath };
     return bookingHandler(routedEvent);
+  }
+
+  if (normalizedPath.startsWith("/appointments") || normalizedPath.startsWith("/slots")) {
+    const appointmentsHandler = await loadAppointmentsHandler();
+    const routedEvent = { ...event, rawPath: normalizedPath, path: normalizedPath };
+    return appointmentsHandler(routedEvent);
   }
 
   if (normalizedPath.startsWith("/providers")) {
@@ -50,6 +63,17 @@ function normalizePath(rawPath, knownRoots = []) {
   }
   const normalised = segments.length ? `/${segments.join("/")}` : "/";
   return { path: normalised };
+}
+
+async function loadAppointmentsHandler() {
+  if (!appointmentsModulePromise) {
+    appointmentsModulePromise = import("../appointments_api/index.mjs");
+  }
+  const module = await appointmentsModulePromise;
+  if (typeof module.handler !== "function") {
+    throw new Error("appointments_api.index.mjs must export handler");
+  }
+  return module.handler;
 }
 
 async function loadProvidersHandler() {
