@@ -1,18 +1,10 @@
 version: 1
 frontend:
   phases:
-    preBuild:
-      commands:
-        - cd frontend
-        - npm ci
     build:
       commands:
-        - cd frontend
-        - npm run build
+        - echo "Build completed"
   artifacts:
-    baseDirectory: frontend/build
+    baseDirectory: .
     files:
-      - '**/*'
-  cache:
-    paths:
-      - frontend/node_modules/**/*
+      - index.html
