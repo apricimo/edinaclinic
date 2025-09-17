@@ -1,11 +1,5 @@
 [
   {
-    "id": "SERVICE#adhd",
-    "name": "ADHD Medication Management",
-    "price": {
-      "amount": 18000,
-      "currency": "usd"
-    },
     "aliases": ["adhd", "adhd-management"],
     "description": "Comprehensive 60-minute evaluation and ongoing ADHD management.",
     "duration_min": 60,
@@ -15,11 +9,6 @@
   },
   {
     "id": "SERVICE#rapid",
-    "name": "Rapid Care Visit",
-    "price": {
-      "amount": 9000,
-      "currency": "usd"
-    },
     "aliases": ["rapid", "rapid-care", "same-day"],
     "description": "Quick 30-minute visit for acute issues that need fast attention.",
     "duration_min": 30,
@@ -29,11 +18,6 @@
   },
   {
     "id": "SERVICE#followup",
-    "name": "Follow-Up Consultation",
-    "price": {
-      "amount": 6500,
-      "currency": "usd"
-    },
     "aliases": ["followup", "follow-up", "check-in"],
     "description": "Focused 20-minute follow-up to review treatment progress.",
     "duration_min": 20,
