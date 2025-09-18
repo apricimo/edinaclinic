@@ -2,62 +2,58 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 
-// Mock data
+// Mock data - Updated for telehealth services
 let services = [
   {
     id: '1',
     providerId: '1',
-    title: 'Deep House Cleaning',
-    description: 'Complete deep cleaning service including bathrooms, kitchen, bedrooms, and living areas. All eco-friendly products included.',
-    category: 'home-services',
-    subcategory: 'cleaning',
-    price: 120,
+    title: 'Minnesota Rapid Care - Virtual',
+    description: 'Quick 15 minute visit for common medical issues. Same day video visits for minor issues like cough, sore throat, sinus symptoms, rashes, uncomplicated UTIs, or medication questions.',
+    category: 'Primary Care',
+    subcategory: 'virtual-consultation',
+    price: 99,
     priceType: 'fixed',
-    duration: '3-4 hours',
-    images: [
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-      'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400'
-    ],
-    tags: ['deep-cleaning', 'eco-friendly', 'pet-safe'],
+    duration: 15,
+    images: ['https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400'],
+    tags: ['same-day', 'video-call', 'licensed-physician'],
     rating: 4.9,
     reviewCount: 127,
-    featured: true
+    featured: true,
+    availableSlots: ['8:15 PM', '8:30 PM', '8:45 PM', '9:00 PM', '9:15 PM', '9:30 PM', '9:45 PM', '10:00 PM', '10:15 PM', '10:30 PM', '10:45 PM']
   },
   {
     id: '2',
     providerId: '2',
-    title: 'Electrical Installation & Repair',
-    description: 'Professional electrical services including outlet installation, lighting fixtures, and electrical troubleshooting.',
-    category: 'home-services',
-    subcategory: 'electrical',
-    price: 75,
-    priceType: 'hourly',
-    duration: 'varies',
-    images: [
-      'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400'
-    ],
-    tags: ['licensed', 'emergency-available', 'warranty'],
+    title: 'Mental Health Consultation',
+    description: 'Professional mental health consultation with licensed therapist. Discuss anxiety, depression, stress management, and other mental health concerns.',
+    category: 'Mental Health',
+    subcategory: 'therapy',
+    price: 150,
+    priceType: 'fixed',
+    duration: 30,
+    images: ['https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400'],
+    tags: ['licensed-therapist', 'confidential', 'video-call'],
     rating: 4.8,
     reviewCount: 89,
-    featured: false
+    featured: true,
+    availableSlots: ['10:00 AM', '2:00 PM', '4:00 PM', '6:00 PM']
   },
   {
     id: '3',
     providerId: '3',
-    title: 'Personal Training Session',
-    description: 'One-on-one personal training session customized to your fitness goals and experience level.',
-    category: 'wellness',
-    subcategory: 'fitness',
-    price: 60,
-    priceType: 'hourly',
-    duration: '1 hour',
-    images: [
-      'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400'
-    ],
-    tags: ['certified-trainer', 'nutrition-included', 'flexible-schedule'],
-    rating: 4.9,
-    reviewCount: 203,
-    featured: true
+    title: 'Dermatology Consultation',
+    description: 'Virtual dermatology consultation for skin conditions, acne treatment, mole checks, and skincare recommendations.',
+    category: 'Specialist',
+    subcategory: 'dermatology',
+    price: 200,
+    priceType: 'fixed',
+    duration: 45,
+    images: ['https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400'],
+    tags: ['skin-care', 'specialist', 'video-consultation'],
+    rating: 4.7,
+    reviewCount: 156,
+    featured: false,
+    availableSlots: ['9:00 AM', '11:00 AM', '1:00 PM', '3:00 PM', '5:00 PM']
   }
 ];
 
