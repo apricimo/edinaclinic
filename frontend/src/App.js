@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Search, MapPin, Star, Clock, ChevronLeft, Calendar, Video } from 'lucide-react';
 
 // Live API URL
-const API_BASE_URL = 'https://tpmsxaij6jknv55uxjxduj3kn40cnahc.lambda-url.us-east-1.on.aws';
+const API_BASE_URL = 'https://qdvn4hezlzp6fyzwiw4hml2bqq0sayqf.lambda-url.us-east-1.on.aws';
 
 // Header Component
 const Header = () => {
