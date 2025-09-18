@@ -3,9 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react
 import { Search, MapPin, Star, Clock, User, Calendar, Settings, Home, Users, BookOpen, MessageSquare, ChevronLeft } from 'lucide-react';
 
 // Import new components
-import CalendarBooking from './components/CalendarBooking';
-import StripeCheckout from './components/StripeCheckout';
-import VideoAppointment from './components/VideoAppointment';
+// Change these imports in App.js:
+import CalendarBooking from './components/CalendarBooking.js';
+import StripeCheckout from './components/StripeCheckout.js';
+import VideoAppointment from './components/VideoAppointments.js'; // Note: your file is named VideoAppointments.js
 
 // Updated API functions for telehealth
 const api = {
