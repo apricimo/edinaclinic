@@ -1,51 +1,161 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, Star, Clock, User, Calendar, Settings, Home, Users, BookOpen, MessageSquare, ChevronLeft } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Search, MapPin, Star, Clock, User, Calendar, Settings, Users, BookOpen, MessageSquare, ChevronLeft, Plus, Edit, Trash2, Save, X } from 'lucide-react';
 
 // Import new components
-// Change these imports in App.js:
 import CalendarBooking from './components/CalendarBooking.js';
 import StripeCheckout from './components/StripeCheckout.js';
-import VideoAppointment from './components/VideoAppointments.js'; // Note: your file is named VideoAppointments.js
+import VideoAppointment from './components/VideoAppointments.js';
 
-// Updated API functions for telehealth
-const api = {
-  getProviders: async () => {
-    const response = await fetch('/api/providers');
-    return response.json();
+// Mock data since backend isn't running
+const mockCategories = [
+  { id: 'primary-care', name: 'Primary Care', icon: '🏥' },
+  { id: 'mental-health', name: 'Mental Health', icon: '🧠' },
+  { id: 'dermatology', name: 'Dermatology', icon: '🩺' },
+  { id: 'pediatrics', name: 'Pediatrics', icon: '👶' },
+  { id: 'cardiology', name: 'Cardiology', icon: '❤️' },
+  { id: 'endocrinology', name: 'Endocrinology', icon: '⚕️' },
+  { id: 'neurology', name: 'Neurology', icon: '🧠' },
+  { id: 'emergency', name: 'Urgent Care', icon: '🚨' }
+];
+
+const mockServices = [
+  {
+    id: '1',
+    providerId: '1',
+    title: 'Minnesota Rapid Care - Virtual',
+    description: 'Quick 15 minute visit for common medical issues. Same day video visits for minor issues like cough, sore throat, sinus symptoms, rashes, uncomplicated UTIs, or medication questions.',
+    category: 'Primary Care',
+    subcategory: 'virtual-consultation',
+    price: 99,
+    priceType: 'fixed',
+    duration: 15,
+    images: ['https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400'],
+    tags: ['same-day', 'video-call', 'licensed-physician'],
+    rating: 4.9,
+    reviewCount: 127,
+    featured: true,
+    availableSlots: ['8:15 PM', '8:30 PM', '8:45 PM', '9:00 PM', '9:15 PM', '9:30 PM', '9:45 PM', '10:00 PM', '10:15 PM', '10:30 PM', '10:45 PM']
   },
-  getServices: async () => {
-    const response = await fetch('/api/services');
-    return response.json();
+  {
+    id: '2',
+    providerId: '2',
+    title: 'Mental Health Consultation',
+    description: 'Professional mental health consultation with licensed therapist. Discuss anxiety, depression, stress management, and other mental health concerns.',
+    category: 'Mental Health',
+    subcategory: 'therapy',
+    price: 150,
+    priceType: 'fixed',
+    duration: 30,
+    images: ['https://images.unsplash.com/photo-1527689368864-3a821dbccc34?w=400'],
+    tags: ['licensed-therapist', 'confidential', 'video-call'],
+    rating: 4.8,
+    reviewCount: 89,
+    featured: true,
+    availableSlots: ['10:00 AM', '2:00 PM', '4:00 PM', '6:00 PM']
   },
-  getCategories: async () => {
-    // Update categories for telehealth
-    return {
-      categories: [
-        { id: 'primary-care', name: 'Primary Care', icon: '🏥' },
-        { id: 'mental-health', name: 'Mental Health', icon: '🧠' },
-        { id: 'dermatology', name: 'Dermatology', icon: '🩺' },
-        { id: 'pediatrics', name: 'Pediatrics', icon: '👶' },
-        { id: 'cardiology', name: 'Cardiology', icon: '❤️' },
-        { id: 'endocrinology', name: 'Endocrinology', icon: '⚕️' },
-        { id: 'neurology', name: 'Neurology', icon: '🧠' },
-        { id: 'emergency', name: 'Urgent Care', icon: '🚨' }
-      ]
-    };
-  },
-  getBookings: async () => {
-    const response = await fetch('/api/bookings');
-    return response.json();
-  },
-  createBooking: async (booking) => {
-    const response = await fetch('/api/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(booking)
-    });
-    return response.json();
+  {
+    id: '3',
+    providerId: '3',
+    title: 'Dermatology Consultation',
+    description: 'Virtual dermatology consultation for skin conditions, acne treatment, mole checks, and skincare recommendations.',
+    category: 'Specialist',
+    subcategory: 'dermatology',
+    price: 200,
+    priceType: 'fixed',
+    duration: 45,
+    images: ['https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400'],
+    tags: ['skin-care', 'specialist', 'video-consultation'],
+    rating: 4.7,
+    reviewCount: 156,
+    featured: false,
+    availableSlots: ['9:00 AM', '11:00 AM', '1:00 PM', '3:00 PM', '5:00 PM']
   }
-};
+];
+
+const mockProviders = [
+  {
+    id: '1',
+    name: 'Dr. Joseph Kumka, MD, PhD',
+    description: 'Board-certified physician with 10+ years of experience in primary care and telehealth consultations.',
+    category: 'Primary Care',
+    rating: 4.9,
+    reviewCount: 127,
+    hourlyRate: 99,
+    location: 'Minnesota',
+    avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150',
+    skills: ['Primary Care', 'Telehealth', 'Urgent Care'],
+    availability: 'available',
+    verified: true,
+    responseTime: '< 15 mins',
+    completedJobs: 340,
+    license: 'MD-MN-12345',
+    specialties: ['Family Medicine', 'Internal Medicine']
+  },
+  {
+    id: '2',
+    name: 'Dr. Sarah Wilson, LCSW',
+    description: 'Licensed clinical social worker specializing in anxiety, depression, and stress management therapy.',
+    category: 'Mental Health',
+    rating: 4.8,
+    reviewCount: 89,
+    hourlyRate: 150,
+    location: 'Minnesota',
+    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150',
+    skills: ['Therapy', 'CBT', 'Anxiety Treatment'],
+    availability: 'available',
+    verified: true,
+    responseTime: '< 30 mins',
+    completedJobs: 156,
+    license: 'LCSW-MN-67890',
+    specialties: ['Cognitive Behavioral Therapy', 'Anxiety Disorders']
+  },
+  {
+    id: '3',
+    name: 'Dr. Michael Chen, MD',
+    description: 'Board-certified dermatologist with expertise in virtual skin consultations and teledermatology.',
+    category: 'Specialist',
+    rating: 4.7,
+    reviewCount: 203,
+    hourlyRate: 200,
+    location: 'Minnesota',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    skills: ['Dermatology', 'Skin Cancer Screening', 'Acne Treatment'],
+    availability: 'busy',
+    verified: true,
+    responseTime: '< 1 hour',
+    completedJobs: 289,
+    license: 'MD-DERM-MN-11111',
+    specialties: ['Medical Dermatology', 'Cosmetic Dermatology']
+  }
+];
+
+const mockBookings = [
+  {
+    id: '1',
+    serviceId: '1',
+    providerId: '1',
+    clientId: 'client1',
+    status: 'confirmed',
+    scheduledDate: '2025-09-20',
+    scheduledTime: '10:00',
+    totalAmount: 99,
+    notes: 'Sore throat and cough symptoms',
+    createdAt: '2025-09-17T10:00:00Z'
+  },
+  {
+    id: '2',
+    serviceId: '2',
+    providerId: '2',
+    clientId: 'client2',
+    status: 'pending',
+    scheduledDate: '2025-09-18',
+    scheduledTime: '16:00',
+    totalAmount: 150,
+    notes: 'Anxiety management consultation',
+    createdAt: '2025-09-17T08:30:00Z'
+  }
+];
 
 // Header Component
 const Header = () => {
@@ -61,9 +171,6 @@ const Header = () => {
           
           <nav className="hidden md:flex space-x-8">
             <Link to="/" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">
-              Home
-            </Link>
-            <Link to="/services" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">
               Services
             </Link>
             <Link to="/providers" className="text-gray-700 hover:text-green-600 px-3 py-2 rounded-md">
@@ -88,30 +195,11 @@ const Header = () => {
   );
 };
 
-// HomePage Component - Updated for telehealth
-const HomePage = ({ onServiceSelect }) => {
-  const [categories, setCategories] = useState([]);
-  const [featuredServices, setFeaturedServices] = useState([]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [categoriesData, servicesData] = await Promise.all([
-          api.getCategories(),
-          api.getServices()
-        ]);
-        setCategories(categoriesData.categories || []);
-        setFeaturedServices(servicesData.services?.filter(s => s.featured) || []);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      }
-    };
-    loadData();
-  }, []);
-
+// Main Services Page (replaces HomePage)
+const ServicesPage = ({ onServiceSelect }) => {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - Updated for telehealth */}
+      {/* Hero Section */}
       <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
@@ -146,7 +234,7 @@ const HomePage = ({ onServiceSelect }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Browse by Specialty</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
-          {categories.map((category) => (
+          {mockCategories.map((category) => (
             <div
               key={category.id}
               className="text-center p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200 cursor-pointer"
@@ -158,12 +246,12 @@ const HomePage = ({ onServiceSelect }) => {
         </div>
       </div>
 
-      {/* Featured Services */}
+      {/* Available Services */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Available Now</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredServices.map((service) => (
+            {mockServices.map((service) => (
               <ServiceCard key={service.id} service={service} onSelect={onServiceSelect} />
             ))}
           </div>
@@ -173,7 +261,7 @@ const HomePage = ({ onServiceSelect }) => {
   );
 };
 
-// ServiceCard Component - Updated for telehealth
+// ServiceCard Component
 const ServiceCard = ({ service, onSelect }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
@@ -213,72 +301,14 @@ const ServiceCard = ({ service, onSelect }) => {
   );
 };
 
-// Services Page
-const ServicesPage = ({ onServiceSelect }) => {
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        const data = await api.getServices();
-        setServices(data.services || []);
-      } catch (error) {
-        console.error('Error loading services:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadServices();
-  }, []);
-
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">All Healthcare Services</h1>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service) => (
-            <ServiceCard key={service.id} service={service} onSelect={onServiceSelect} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // Providers Page
 const ProvidersPage = () => {
-  const [providers, setProviders] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadProviders = async () => {
-      try {
-        const data = await api.getProviders();
-        setProviders(data.providers || []);
-      } catch (error) {
-        console.error('Error loading providers:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadProviders();
-  }, []);
-
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Healthcare Providers</h1>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {providers.map((provider) => (
+          {mockProviders.map((provider) => (
             <ProviderCard key={provider.id} provider={provider} />
           ))}
         </div>
@@ -293,7 +323,7 @@ const ProviderCard = ({ provider }) => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="flex items-center mb-4">
         <img
-          src={provider.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150'}
+          src={provider.avatar}
           alt={provider.name}
           className="w-16 h-16 rounded-full object-cover"
         />
@@ -349,27 +379,6 @@ const ProviderCard = ({ provider }) => {
 
 // Bookings Page
 const BookingsPage = () => {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadBookings = async () => {
-      try {
-        const data = await api.getBookings();
-        setBookings(data.bookings || []);
-      } catch (error) {
-        console.error('Error loading bookings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadBookings();
-  }, []);
-
-  if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -397,14 +406,14 @@ const BookingsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {bookings.map((booking) => (
+                {mockBookings.map((booking) => (
                   <tr key={booking.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        Service #{booking.serviceId}
+                        {mockServices.find(s => s.id === booking.serviceId)?.title || 'Unknown Service'}
                       </div>
                       <div className="text-sm text-gray-500">
-                        Provider #{booking.providerId}
+                        {mockProviders.find(p => p.id === booking.providerId)?.name || 'Unknown Provider'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -449,43 +458,229 @@ const BookingsPage = () => {
   );
 };
 
-// Admin Page
-const AdminPage = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState({
-    totalProviders: 0,
-    totalServices: 0,
-    totalBookings: 0,
-    totalRevenue: 0
+// Admin Service Management Component
+const AdminServiceManagement = () => {
+  const [services, setServices] = useState(mockServices);
+  const [isEditing, setIsEditing] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    duration: '',
+    price: '',
+    description: '',
+    category: ''
   });
 
-  useEffect(() => {
-    // Load admin stats
-    const loadStats = async () => {
-      try {
-        const [providers, services, bookings] = await Promise.all([
-          api.getProviders(),
-          api.getServices(),
-          api.getBookings()
-        ]);
-        
-        setStats({
-          totalProviders: providers.providers?.length || 0,
-          totalServices: services.services?.length || 0,
-          totalBookings: bookings.bookings?.length || 0,
-          totalRevenue: bookings.bookings?.reduce((sum, b) => sum + (b.totalAmount || 0), 0) || 0
-        });
-      } catch (error) {
-        console.error('Error loading admin stats:', error);
-      }
-    };
-    loadStats();
-  }, []);
+  const categories = ['Primary Care', 'Mental Health', 'Specialist', 'Emergency', 'Consultation'];
+
+  const handleEdit = (service) => {
+    setIsEditing(service.id);
+    setEditForm({
+      title: service.title,
+      duration: service.duration,
+      price: service.price,
+      description: service.description,
+      category: service.category
+    });
+  };
+
+  const handleSave = () => {
+    if (isEditing) {
+      setServices(services.map(service => 
+        service.id === isEditing 
+          ? { ...service, ...editForm, duration: parseInt(editForm.duration), price: parseFloat(editForm.price) }
+          : service
+      ));
+    } else {
+      const newService = {
+        id: Date.now().toString(),
+        ...editForm,
+        duration: parseInt(editForm.duration),
+        price: parseFloat(editForm.price),
+        providerId: '1',
+        rating: 0,
+        reviewCount: 0,
+        featured: false,
+        availableSlots: ['8:15 PM', '8:30 PM', '8:45 PM', '9:00 PM']
+      };
+      setServices([...services, newService]);
+    }
+    
+    setIsEditing(null);
+    setShowAddForm(false);
+    setEditForm({ title: '', duration: '', price: '', description: '', category: '' });
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this service?')) {
+      setServices(services.filter(service => service.id !== id));
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(null);
+    setShowAddForm(false);
+    setEditForm({ title: '', duration: '', price: '', description: '', category: '' });
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 className="text-xl font-bold text-gray-900">Service Management</h2>
+        <button
+          onClick={() => setShowAddForm(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          Add New Service
+        </button>
+      </div>
+
+      {/* Add/Edit Form */}
+      {(showAddForm || isEditing) && (
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <h3 className="text-lg font-medium mb-4">
+            {isEditing ? 'Edit Service' : 'Add New Service'}
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Service Name *
+              </label>
+              <input
+                type="text"
+                value={editForm.title}
+                onChange={(e) => setEditForm({...editForm, title: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter service name"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category *
+              </label>
+              <select
+                value={editForm.category}
+                onChange={(e) => setEditForm({...editForm, category: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">Select category</option>
+                {categories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Duration (minutes) *
+              </label>
+              <input
+                type="number"
+                value={editForm.duration}
+                onChange={(e) => setEditForm({...editForm, duration: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="15"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price ($) *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={editForm.price}
+                onChange={(e) => setEditForm({...editForm, price: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="99.00"
+              />
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description *
+            </label>
+            <textarea
+              value={editForm.description}
+              onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Enter service description"
+            />
+          </div>
+          
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={handleSave}
+              className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700 transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              Save
+            </button>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-gray-600 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Services List */}
+      <div className="p-6">
+        <div className="grid gap-4">
+          {services.map((service) => (
+            <div key={service.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">{service.title}</h3>
+                    <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      {service.category}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-6 mb-3 text-sm text-gray-600">
+                    <span>{service.duration} mins</span>
+                    <span className="font-semibold text-green-600">${service.price}</span>
+                  </div>
+                  <p className="text-gray-700 text-sm leading-relaxed">{service.description}</p>
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => handleEdit(service)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(service.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Admin Page
+const AdminPage = () => {
+  const [activeTab, setActiveTab] = useState('services');
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: Home },
-    { id: 'providers', name: 'Providers', icon: Users },
     { id: 'services', name: 'Services', icon: BookOpen },
+    { id: 'providers', name: 'Providers', icon: Users },
     { id: 'bookings', name: 'Bookings', icon: Calendar },
     { id: 'reviews', name: 'Reviews', icon: MessageSquare },
     { id: 'settings', name: 'Settings', icon: Settings }
@@ -522,58 +717,9 @@ const AdminPage = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {activeTab === 'overview' && (
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <Users className="h-8 w-8 text-green-600" />
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Providers</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.totalProviders}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <BookOpen className="h-8 w-8 text-blue-600" />
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Services</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.totalServices}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <Calendar className="h-8 w-8 text-orange-600" />
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Appointments</p>
-                        <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <div className="flex items-center">
-                      <div className="h-8 w-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">$</div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                        <p className="text-2xl font-bold text-gray-900">${stats.totalRevenue}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                  <p className="text-gray-500">Recent telehealth appointments and bookings will appear here.</p>
-                </div>
-              </div>
-            )}
-
-            {activeTab !== 'overview' && (
+            {activeTab === 'services' && <AdminServiceManagement />}
+            
+            {activeTab !== 'services' && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   {tabs.find(t => t.id === activeTab)?.name} Management
@@ -590,9 +736,9 @@ const AdminPage = () => {
   );
 };
 
-// Main App Component with telehealth booking flow
+// Main App Component
 function App() {
-  const [currentView, setCurrentView] = useState('home');
+  const [currentView, setCurrentView] = useState('services');
   const [selectedService, setSelectedService] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showCheckout, setShowCheckout] = useState(false);
@@ -614,7 +760,7 @@ function App() {
     setCompletedBooking(bookingData);
     setCurrentView('confirmation');
     
-    // Auto-start video call for demonstration (in real app, this would be scheduled)
+    // Auto-start video call for demonstration
     setTimeout(() => {
       setShowVideoCall(true);
     }, 3000);
@@ -622,14 +768,14 @@ function App() {
 
   const handleEndCall = () => {
     setShowVideoCall(false);
-    setCurrentView('home');
+    setCurrentView('services');
     // Reset state
     setSelectedService(null);
     setSelectedAppointment(null);
     setCompletedBooking(null);
   };
 
-  // Render different views based on currentView state
+  // Render different views
   if (showVideoCall && completedBooking) {
     return (
       <VideoAppointment 
@@ -645,7 +791,7 @@ function App() {
         <Header />
         <div className="max-w-4xl mx-auto p-6">
           <button
-            onClick={() => setCurrentView('home')}
+            onClick={() => setCurrentView('services')}
             className="mb-4 text-green-600 hover:text-green-700 flex items-center gap-2"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -704,7 +850,7 @@ function App() {
             </p>
             
             <button
-              onClick={() => setCurrentView('home')}
+              onClick={() => setCurrentView('services')}
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700"
             >
               Return to Services
@@ -721,8 +867,7 @@ function App() {
         <Header />
         
         <Routes>
-          <Route path="/" element={<HomePage onServiceSelect={handleServiceSelect} />} />
-          <Route path="/services" element={<ServicesPage onServiceSelect={handleServiceSelect} />} />
+          <Route path="/" element={<ServicesPage onServiceSelect={handleServiceSelect} />} />
           <Route path="/providers" element={<ProvidersPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/admin" element={<AdminPage />} />
