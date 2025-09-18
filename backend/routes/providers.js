@@ -2,55 +2,61 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 
-// Mock data - in production, this would come from a database
+// Mock data - Updated for healthcare professionals
 let providers = [
   {
     id: '1',
-    name: 'Sarah Johnson',
-    description: 'Professional house cleaner with 8+ years of experience. Eco-friendly products only.',
-    category: 'home-services',
+    name: 'Dr. Joseph Kumka, MD, PhD',
+    description: 'Board-certified physician with 10+ years of experience in primary care and telehealth consultations.',
+    category: 'Primary Care',
     rating: 4.9,
     reviewCount: 127,
-    hourlyRate: 35,
-    location: 'Downtown Seattle',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150',
-    skills: ['Deep Cleaning', 'Eco-Friendly', 'Pet-Friendly'],
+    hourlyRate: 99,
+    location: 'Minnesota',
+    avatar: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=150',
+    skills: ['Primary Care', 'Telehealth', 'Urgent Care'],
     availability: 'available',
     verified: true,
-    responseTime: '< 1 hour',
-    completedJobs: 340
+    responseTime: '< 15 mins',
+    completedJobs: 340,
+    license: 'MD-MN-12345',
+    specialties: ['Family Medicine', 'Internal Medicine']
   },
   {
     id: '2',
-    name: 'Mike Chen',
-    description: 'Licensed electrician specializing in residential and commercial electrical work.',
-    category: 'home-services',
+    name: 'Dr. Sarah Wilson, LCSW',
+    description: 'Licensed clinical social worker specializing in anxiety, depression, and stress management therapy.',
+    category: 'Mental Health',
     rating: 4.8,
     reviewCount: 89,
-    hourlyRate: 75,
-    location: 'Bellevue',
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-    skills: ['Electrical Repair', 'Installation', 'Emergency Service'],
-    availability: 'busy',
-    verified: true,
-    responseTime: '< 2 hours',
-    completedJobs: 156
-  },
-  {
-    id: '3',
-    name: 'Emily Rodriguez',
-    description: 'Certified personal trainer and nutritionist helping you achieve your fitness goals.',
-    category: 'wellness',
-    rating: 4.9,
-    reviewCount: 203,
-    hourlyRate: 60,
-    location: 'Capitol Hill',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-    skills: ['Personal Training', 'Nutrition Coaching', 'Yoga'],
+    hourlyRate: 150,
+    location: 'Minnesota',
+    avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150',
+    skills: ['Therapy', 'CBT', 'Anxiety Treatment'],
     availability: 'available',
     verified: true,
     responseTime: '< 30 mins',
-    completedJobs: 289
+    completedJobs: 156,
+    license: 'LCSW-MN-67890',
+    specialties: ['Cognitive Behavioral Therapy', 'Anxiety Disorders']
+  },
+  {
+    id: '3',
+    name: 'Dr. Michael Chen, MD',
+    description: 'Board-certified dermatologist with expertise in virtual skin consultations and teledermatology.',
+    category: 'Specialist',
+    rating: 4.7,
+    reviewCount: 203,
+    hourlyRate: 200,
+    location: 'Minnesota',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    skills: ['Dermatology', 'Skin Cancer Screening', 'Acne Treatment'],
+    availability: 'busy',
+    verified: true,
+    responseTime: '< 1 hour',
+    completedJobs: 289,
+    license: 'MD-DERM-MN-11111',
+    specialties: ['Medical Dermatology', 'Cosmetic Dermatology']
   }
 ];
 
