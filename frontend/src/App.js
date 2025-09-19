@@ -36,7 +36,6 @@ const ServiceSelection = ({ onServiceSelect }) => {
   useEffect(() => {
     const loadServices = async () => {
       try {
-        // FIXED: removed duplicate /api
         const response = await fetch(`${API_BASE_URL}/api/services`);
         const data = await response.json();
         setServices(data.services || []);
@@ -212,7 +211,6 @@ const StripeCheckout = ({ appointment, onPaymentSuccess }) => {
         customerInfo: formData
       };
 
-      // FIXED: removed duplicate /api
       fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -334,16 +332,92 @@ const VideoCall = ({ appointment, onEndCall }) => {
   );
 };
 
-// Simple Admin Page
+// Admin Page with REAL functionality
 const AdminPage = () => {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/admin/dashboard`)
+      .then(response => response.json())
+      .then(data => {
+        setDashboardData(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Failed to load dashboard:', error);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h2 className="text-xl font-semibold mb-4">Service Management</h2>
-          <p className="text-gray-600">Admin can create, edit, and delete telehealth services here.</p>
-          <p className="text-sm text-gray-500 mt-4">API: {API_BASE_URL}</p>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Total Bookings</h3>
+            <p className="text-2xl font-bold text-gray-900">{dashboardData?.totalBookings || 0}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Revenue</h3>
+            <p className="text-2xl font-bold text-green-600">${dashboardData?.totalRevenue || 0}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Active Providers</h3>
+            <p className="text-2xl font-bold text-blue-600">{dashboardData?.activeProviders || 0}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-sm font-medium text-gray-500">Today's Consultations</h3>
+            <p className="text-2xl font-bold text-purple-600">{dashboardData?.completedToday || 0}</p>
+          </div>
+        </div>
+
+        {/* Recent Bookings */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b">
+            <h2 className="text-lg font-semibold">Recent Bookings</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Provider</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {dashboardData?.recentBookings?.map((booking) => (
+                  <tr key={booking.id}>
+                    <td className="px-6 py-4 text-sm text-gray-900">{booking.patientName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{booking.service}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{booking.provider}</td>
+                    <td className="px-6 py-4 text-sm text-green-600">${booking.amount}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        booking.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {booking.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -355,7 +429,6 @@ const BookingsPage = () => {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
-    // FIXED: removed duplicate /api
     fetch(`${API_BASE_URL}/api/bookings`)
       .then(response => response.json())
       .then(data => setBookings(data.bookings || []))
@@ -392,9 +465,9 @@ const BookingsPage = () => {
   );
 };
 
-// Main App Component - FIXED: Removed Router wrapper since index.js already has BrowserRouter
+// Main App Component
 function App() {
-  const [currentStep, setCurrentStep] = useState('services'); // 'services', 'booking', 'payment', 'video'
+  const [currentStep, setCurrentStep] = useState('services');
   const [selectedService, setSelectedService] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [completedBooking, setCompletedBooking] = useState(null);
