@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import { Search, MapPin, Star, Clock, ChevronLeft, Calendar, Video } from 'lucide-react';
 
-// Live API URL
-const API_BASE_URL = 'https://qdvn4hezlzp6fyzwiw4hml2bqq0sayqf.lambda-url.us-east-1.on.aws/api';
+// Live API URL - FIXED: removed /api since it's already in URL
+const API_BASE_URL = 'https://qdvn4hezlzp6fyzwiw4hml2bqq0sayqf.lambda-url.us-east-1.on.aws';
 
 // Header Component
 const Header = () => {
@@ -36,6 +36,7 @@ const ServiceSelection = ({ onServiceSelect }) => {
   useEffect(() => {
     const loadServices = async () => {
       try {
+        // FIXED: removed duplicate /api
         const response = await fetch(`${API_BASE_URL}/api/services`);
         const data = await response.json();
         setServices(data.services || []);
@@ -211,7 +212,7 @@ const StripeCheckout = ({ appointment, onPaymentSuccess }) => {
         customerInfo: formData
       };
 
-      // Call API to create booking
+      // FIXED: removed duplicate /api
       fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -219,7 +220,8 @@ const StripeCheckout = ({ appointment, onPaymentSuccess }) => {
       }).then(response => response.json())
         .then(booking => {
           onPaymentSuccess({ ...appointment, booking });
-        });
+        })
+        .catch(console.error);
         
     }, 2000);
   };
@@ -353,6 +355,7 @@ const BookingsPage = () => {
   const [bookings, setBookings] = useState([]);
 
   useEffect(() => {
+    // FIXED: removed duplicate /api
     fetch(`${API_BASE_URL}/api/bookings`)
       .then(response => response.json())
       .then(data => setBookings(data.bookings || []))
@@ -389,7 +392,7 @@ const BookingsPage = () => {
   );
 };
 
-// Main App Component
+// Main App Component - FIXED: Removed Router wrapper since index.js already has BrowserRouter
 function App() {
   const [currentStep, setCurrentStep] = useState('services'); // 'services', 'booking', 'payment', 'video'
   const [selectedService, setSelectedService] = useState(null);
@@ -456,15 +459,14 @@ function App() {
   }
 
   return (
-  <div className="min-h-screen bg-gray-50">
-        <Header />
-        <Routes>
-          <Route path="/" element={<ServiceSelection onServiceSelect={handleServiceSelect} />} />
-          <Route path="/bookings" element={<BookingsPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-        </Routes>
-      </div>
-    </Router>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <Routes>
+        <Route path="/" element={<ServiceSelection onServiceSelect={handleServiceSelect} />} />
+        <Route path="/bookings" element={<BookingsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+      </Routes>
+    </div>
   );
 }
 
